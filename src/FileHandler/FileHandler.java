@@ -10,6 +10,6 @@ public class FileHandler {
     }
 
     public void endFile(int PID){
-        
+        files.remove(PID);
     }
 }
