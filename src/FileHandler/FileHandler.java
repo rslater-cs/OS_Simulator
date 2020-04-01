@@ -20,7 +20,7 @@ public class FileHandler {
         files.add(PID, new CodeReader(path));
     }
 
-    public void endFile(int PID){
+    public void exitFile(int PID){
         files.remove(PID);
         roundRobin.removeProcess(PID);
     }
