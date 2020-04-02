@@ -1,4 +1,4 @@
-package ProcessFormats;
+package ProcessFormats.Process;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -8,10 +8,8 @@ import java.util.regex.Pattern;
 
 public class ProcessLine {
     Stack<String> codeStack;
-    private int PID;
 
-    public ProcessLine(int PID, String codeLine){
-        this.PID = PID;
+    public ProcessLine(String codeLine){
         this.codeStack = toStack(codeLine);
     }
 
@@ -19,10 +17,6 @@ public class ProcessLine {
         Stack<String> stack = new Stack<>();
         Collections.addAll(stack, codeLine.split(" "));
         return stack;
-    }
-
-    public int getID(){
-        return PID;
     }
 
     public String getSegment(){
