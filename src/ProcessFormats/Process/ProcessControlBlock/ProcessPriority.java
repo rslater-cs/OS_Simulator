@@ -1,4 +1,4 @@
-package ProcessFormats.Process;
+package ProcessFormats.Process.ProcessControlBlock;
 
 public enum ProcessPriority {
     HIGH,

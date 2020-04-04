@@ -1,6 +1,7 @@
 package FileHandler;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class FileReader {
@@ -21,14 +22,13 @@ public class FileReader {
         }
     }
 
-    public int getFileLength(){
-        int x = 0;
-        while (file.hasNextLine()){
-            x++;
-            file.nextLine();
+    public String[] getAll(){
+        ArrayList<String> lines = new ArrayList<>();
+        String line;
+        while((line = getLine()) != null){
+            lines.add(line);
         }
-        file = createScanner();
-        return x;
+        return lines.toArray(String[]::new);
     }
 
     private Scanner createScanner(){
