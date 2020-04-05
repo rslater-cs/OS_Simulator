@@ -1,9 +1,5 @@
 package ProcessFormats.Opcode;
 
-import FileHandler.Complier.Interpreter.Interpreter;
-
-import java.lang.reflect.Array;
-
 public class Argument {
     private String stringArgument;
     private int intArgument;
@@ -11,11 +7,15 @@ public class Argument {
 
     public Argument(String stringArgument, AddressMode addressMode){
         this.stringArgument = stringArgument;
-        this.intArgument = Integer.parseInt(stringArgument);
+        try {
+            this.intArgument = Integer.parseInt(stringArgument);
+        } catch(Exception e){
+            this.intArgument = -1;
+        }
         this.addressMode = addressMode;
     }
 
-    public String getStringArgument() {
+    public String getValue() {
         return stringArgument;
     }
 
@@ -29,7 +29,7 @@ public class Argument {
 
     @Override
     public String toString(){
-        String result = getStringArgument();
+        String result = getValue();
         if(addressMode == AddressMode.DIRECT){
             result = "#" + result;
         }

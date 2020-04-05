@@ -4,14 +4,12 @@ public class PCB {
     private ProcessState processState = ProcessState.NEW;
     private int processID = -1;
     private int processCounter;
-    private int memoryStart;
-    private int memoryLimit;
+    private MemoryLimits memoryLimits;
     private ProcessPriority priority;
 
-    public PCB(int processCounter, int memoryLimit, ProcessPriority priority){
+    public PCB(int processCounter, MemoryLimits memoryLimits, ProcessPriority priority){
         this.processCounter = processCounter;
-        this.memoryStart = processCounter;
-        this.memoryLimit = memoryLimit;
+        this.memoryLimits = memoryLimits;
         this.priority = priority;
     }
 
@@ -24,7 +22,7 @@ public class PCB {
     }
 
     public int getProcessCounter() {
-        if(processCounter - memoryLimit == 0){
+        if(processCounter - memoryLimits.getEnd() == 0){
             this.processState = ProcessState.TERMINATING;
         }
         return processCounter++;
@@ -34,8 +32,8 @@ public class PCB {
         processCounter = process;
     }
 
-    public int getMemoryLimit() {
-        return memoryLimit;
+    public int getMemoryEnd() {
+        return memoryLimits.getEnd();
     }
 
     public ProcessState getProcessState() {
@@ -47,6 +45,10 @@ public class PCB {
     }
 
     public int getMemoryStart() {
-        return memoryStart;
+        return memoryLimits.getStart();
+    }
+
+    public int getProgramSize(){
+        return memoryLimits.getSize();
     }
 }

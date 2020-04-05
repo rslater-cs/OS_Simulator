@@ -12,7 +12,7 @@ import java.util.Stack;
 import java.util.regex.Pattern;
 
 public class Pack {
-    private Token[] tokens;
+    private Argument[] tokens;
     private Variables variables;
     private final static String[] REGEX = {"(print)|(input)", "[a-zA-Z][a-zA-z0-9]*", "[0-9]+"};
     private final static AddressMode[] ADDRESS_MODE = {AddressMode.NONE, AddressMode.DIRECT, AddressMode.IMMEDIATE};
@@ -20,7 +20,7 @@ public class Pack {
 
     public Pack(Stack<String> codeSegments, Variables variables){
         this.variables = variables;
-        this.tokens = toTokens(pack(codeSegments));
+        this.tokens = toArguments(pack(codeSegments));
         operations.put("*", "mul");
         operations.put("-", "sub");
         operations.put("+", "add");
@@ -42,22 +42,20 @@ public class Pack {
         return segments;
     }
 
-    private Token[] toTokens(String[] data){
-        Token[] tokens = new Token[data.length];
-        for(int x = 0; x < tokens.length; x++){
-            tokens[x] = toToken(data[x]);
+    private Argument[] toArguments(String[] data){
+        Argument[] arguments = new Argument[data.length];
+        for(int x = 0; x < arguments.length; x++){
+            arguments[x] = toArgument(data[x]);
         }
-        return tokens;
+        return arguments;
     }
 
-    private Token toToken(String name){
+    private Argument toArgument(String name){
         AddressMode addressMode = getAddressMode(name);
-        //System.out.println(addressMode);
-        //System.out.println(name);
         if(addressMode == AddressMode.DIRECT){
             name = variables.replace(name);
         }
-        return new Token(addressMode, name);
+        return new Argument(name, addressMode);
     }
 
     private AddressMode getAddressMode(String name){
