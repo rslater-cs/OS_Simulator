@@ -1,19 +1,26 @@
 package FileHandler.Complier.Interpreter.Token;
 
+import ProcessFormats.Opcode.AddressMode;
+
 public class Token {
-    private String name;
-    private String regex;
+    private AddressMode addressMode;
+    private String value;
 
-    public Token(String name, String regex){
-        this.name = name;
-        this.regex = regex;
+    public Token(AddressMode addressMode, String value){
+        this.addressMode = addressMode;
+        this.value = value;
     }
 
-    public String getSymbol() {
-        return name;
+    public String getValue() {
+        return value;
     }
 
-    public String getRegex() {
-        return regex;
+    public AddressMode getAddressMode() {
+        return addressMode;
+    }
+
+    @Override
+    public String toString(){
+        return addressMode + ", " + value;
     }
 }

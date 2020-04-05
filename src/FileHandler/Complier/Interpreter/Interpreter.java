@@ -1,5 +1,8 @@
 package FileHandler.Complier.Interpreter;
 
+import FileHandler.Complier.Variables;
+import ProcessFormats.Opcode.AddressMode;
+import ProcessFormats.Opcode.Argument;
 import ProcessFormats.Opcode.Opcode;
 
 import java.util.ArrayList;
@@ -8,14 +11,19 @@ import java.util.Stack;
 
 public class Interpreter {
     private static final String RETURN_ADDR = "ret";
+    private Variables variables;
+
+    public Interpreter(Variables variables){
+        this.variables = variables;
+    }
 
     public ArrayList<Opcode> interpret(String codeLine, int lineNum){
-        final Opcode ERROR_MESSAGE = new Opcode("err", new String[]{Integer.toString(lineNum)});
+        final Opcode ERROR_MESSAGE = new Opcode("err", new Argument[]{new Argument(Integer.toString(lineNum), AddressMode.IMMEDIATE)});
         ArrayList<Opcode> opcodes = new ArrayList<>();
         Stack<String> code = toStack(codeLine);
         while(code.size() > 1){
-            Pack pack = new Pack(code);
-            if(pack.isValid()){
+            Pack pack = new Pack(code, variables);
+            if(pack.validate()){
                 opcodes.add(pack.toOpcode());
                 if(code.size() > 0){
                     code.add(RETURN_ADDR);

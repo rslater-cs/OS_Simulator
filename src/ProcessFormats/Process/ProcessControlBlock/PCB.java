@@ -4,11 +4,13 @@ public class PCB {
     private ProcessState processState = ProcessState.NEW;
     private int processID = -1;
     private int processCounter;
+    private int memoryStart;
     private int memoryLimit;
     private ProcessPriority priority;
 
     public PCB(int processCounter, int memoryLimit, ProcessPriority priority){
         this.processCounter = processCounter;
+        this.memoryStart = processCounter;
         this.memoryLimit = memoryLimit;
         this.priority = priority;
     }
@@ -42,5 +44,9 @@ public class PCB {
 
     public ProcessPriority getPriority() {
         return priority;
+    }
+
+    public int getMemoryStart() {
+        return memoryStart;
     }
 }

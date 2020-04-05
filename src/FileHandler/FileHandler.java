@@ -11,7 +11,7 @@ public class FileHandler {
     private Queue<Opcode> instructions;
 
     private static final String BOOT_INIT = "boot";
-    private static final String CODE_INIT = ""
+    private static final String CODE_INIT = "";
 
     public FileHandler(Queue<Opcode> fileRequests, Queue<Opcode> instructions){
         this.fileRequests = fileRequests;
