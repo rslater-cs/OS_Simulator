@@ -1,16 +1,20 @@
-package ProcessFormats.Process.ProcessControlBlock;
+package ProcessFormats.ProcessControlBlock;
+
+import ProcessFormats.ProcessControlBlock.InternalObjects.MemoryLimits;
+import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessPriority;
+import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessState;
+import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessTime;
 
 public class PCB {
     private ProcessState processState = ProcessState.NEW;
     private int processID = -1;
-    private int processCounter;
+    private int processCounter = 0;
     private MemoryLimits memoryLimits;
     private ProcessPriority priority;
     private int quantum;
-    private int executionTime = 0;
+    private ProcessTime processTime = new ProcessTime();
 
-    public PCB(int processCounter, MemoryLimits memoryLimits, ProcessPriority priority){
-        this.processCounter = processCounter;
+    public PCB(MemoryLimits memoryLimits, ProcessPriority priority){
         this.memoryLimits = memoryLimits;
         this.priority = priority;
     }
@@ -24,7 +28,7 @@ public class PCB {
     }
 
     public int getProcessCounter() {
-        executionTime++;
+        processTime.setEnd();
         if(processCounter - memoryLimits.getEnd() == 0){
             this.processState = ProcessState.TERMINATING;
         }
@@ -43,6 +47,15 @@ public class PCB {
         return processState;
     }
 
+    public void setProcessState(ProcessState processState){
+        if(processState == ProcessState.READY){
+            processTime.setStart();
+        } else if(processState == ProcessState.TERMINATING){
+            processTime.setEnd();
+        }
+        this.processState = processState;
+    }
+
     public ProcessPriority getPriority() {
         return priority;
     }
@@ -56,14 +69,19 @@ public class PCB {
     }
 
     public int getQuantum() {
-        return quantum--;
+        return quantum;
     }
 
     public void setQuantum(int quantum) {
         this.quantum = quantum;
     }
 
-    public int getExecutionTime() {
-        return executionTime;
+    public double getExecutionTime() {
+        return processTime.totalTime();
+    }
+
+    @Override
+    public String toString(){
+        return processID + ", " + priority + ", " + processState + ", " + processCounter + ", " + quantum + ", " + getExecutionTime();
     }
 }

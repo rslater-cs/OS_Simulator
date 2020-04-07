@@ -46,6 +46,9 @@ public class SynchronisedQueue<T> {
     }
 
     public int size(){
-        return queue.size();
+        lock.lock();
+        int size = queue.size();
+        lock.unlock();
+        return size;
     }
 }

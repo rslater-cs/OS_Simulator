@@ -1,4 +1,4 @@
-package ProcessFormats.Process.ProcessControlBlock;
+package ProcessFormats.ProcessControlBlock.InternalObjects;
 
 public class MemoryLimits {
     private int start;

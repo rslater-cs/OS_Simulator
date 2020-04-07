@@ -50,7 +50,10 @@ public class SynchronisedArrayList<T> {
     }
 
     public int size(){
-        return arrayList.size();
+        lock.lock();
+        int size = arrayList.size();
+        lock.unlock();
+        return size;
     }
 
     private void await(){
@@ -59,5 +62,15 @@ public class SynchronisedArrayList<T> {
         }catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String toString(){
+        StringBuffer sync = new StringBuffer();
+        for(T item : arrayList){
+            sync.append(item);
+            sync.append("\n");
+        }
+        return sync.toString();
     }
 }

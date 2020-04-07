@@ -2,23 +2,19 @@ package Scheduler;
 
 import DataTypes.SynchronisedArrayList;
 import DataTypes.SynchronisedQueue;
-import ProcessFormats.Process.ProcessControlBlock.PCB;
-import ProcessFormats.Process.ProcessControlBlock.ProcessPriority;
-
-import java.util.ArrayList;
+import ProcessFormats.ProcessControlBlock.PCB;
+import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessPriority;
 
 public class LongTermScheduler extends Thread{
     private SynchronisedQueue<PCB> jobQueue;
     private SynchronisedArrayList<PCB> sortedJobs;
-    private int maxSize;
     boolean computerIsRunning;
     private int highQuantum;
     private int lowQuantum;
 
-    public LongTermScheduler(SynchronisedQueue<PCB> jobQueue, SynchronisedArrayList<PCB> sortedJobs, int size, boolean computerIsRunning, int highQuantum, int lowQuantum){
+    public LongTermScheduler(SynchronisedQueue<PCB> jobQueue, SynchronisedArrayList<PCB> sortedJobs, boolean computerIsRunning, int highQuantum, int lowQuantum){
         this.jobQueue = jobQueue;
         this.sortedJobs = sortedJobs;
-        this.maxSize = size;
         this.computerIsRunning = computerIsRunning;
         this.highQuantum = highQuantum;
         this.lowQuantum = lowQuantum;

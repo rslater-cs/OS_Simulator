@@ -1,6 +1,6 @@
 package ProcessFormats.Opcode;
 
-import ProcessFormats.Process.ProcessControlBlock.ProcessPriority;
+import ProcessFormats.Opcode.Argument.Argument;
 
 public class Opcode {
     private String process;
@@ -16,8 +16,11 @@ public class Opcode {
         return process;
     }
 
-    public Argument[] getArgs(){
-        return args;
+    public int getIntArg(int index){
+        if(index < args.length) {
+            return args[index].getIntArgument();
+        }
+        return Integer.MIN_VALUE;
     }
 
     public void setArg(int index, Argument value){

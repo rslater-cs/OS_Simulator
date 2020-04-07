@@ -1,9 +1,8 @@
 package FileHandler.Complier.Interpreter;
 
-import FileHandler.Complier.Interpreter.Token.Token;
 import FileHandler.Complier.Variables;
-import ProcessFormats.Opcode.AddressMode;
-import ProcessFormats.Opcode.Argument;
+import ProcessFormats.Opcode.Argument.AddressMode;
+import ProcessFormats.Opcode.Argument.Argument;
 import ProcessFormats.Opcode.Opcode;
 
 import java.util.HashMap;
