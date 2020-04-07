@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 public class Variables {
     private ArrayList<String> variableNames = new ArrayList<>();
-    private int relativeAddress = 1;
+    private int relativeAddress = 0;
     private boolean isBuilt = false;
     private Map<String, String> variables = new HashMap<>();
     private static final String VARIABLE_REGEX = "[a-zA-Z][a-zA-Z0-9]*";

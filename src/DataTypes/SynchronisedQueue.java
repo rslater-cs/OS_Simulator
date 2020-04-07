@@ -44,4 +44,8 @@ public class SynchronisedQueue<T> {
             e.printStackTrace();
         }
     }
+
+    public int size(){
+        return queue.size();
+    }
 }

@@ -1,0 +1,10 @@
+x = 1
+y = 3
+z = x + y
+z = z * 4
+zPowerOf6 = z * z * z * z * z * z
+print z
+print zPowerOf6
+result = y + z - x
+result = result / 1 * 2 * 3 - 1 + 20
+print result

@@ -6,6 +6,8 @@ public class PCB {
     private int processCounter;
     private MemoryLimits memoryLimits;
     private ProcessPriority priority;
+    private int quantum;
+    private int executionTime = 0;
 
     public PCB(int processCounter, MemoryLimits memoryLimits, ProcessPriority priority){
         this.processCounter = processCounter;
@@ -22,6 +24,7 @@ public class PCB {
     }
 
     public int getProcessCounter() {
+        executionTime++;
         if(processCounter - memoryLimits.getEnd() == 0){
             this.processState = ProcessState.TERMINATING;
         }
@@ -50,5 +53,17 @@ public class PCB {
 
     public int getProgramSize(){
         return memoryLimits.getSize();
+    }
+
+    public int getQuantum() {
+        return quantum--;
+    }
+
+    public void setQuantum(int quantum) {
+        this.quantum = quantum;
+    }
+
+    public int getExecutionTime() {
+        return executionTime;
     }
 }
