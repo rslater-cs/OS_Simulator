@@ -6,16 +6,7 @@ public class MemoryChip {
     private Opcode[][] memoryArray;
 
     public MemoryChip(int memorySize){
-        this.memoryArray = createMemory(memorySize);
-    }
-
-    private Opcode[][] createMemory(int size){
-        int squareSize = (int)Math.sqrt(size);
-        if(squareSize * squareSize != size){
-            squareSize = squareSize+1;
-            System.out.println("Memory size could not be evenly split, memory size has been changed to: " + (squareSize*squareSize));
-        }
-        return new Opcode[squareSize][squareSize];
+        this.memoryArray = new Opcode[memorySize][memorySize];
     }
 
     public void setData(int x, int y, Opcode data){

@@ -26,4 +26,12 @@ public class BiDirectionalQueue<T> {
     public T accept(){
         return receiver.remove();
     }
+
+    public int senderSize(){
+        return sender.size();
+    }
+
+    public int receiverSize(){
+        return receiver.size();
+    }
 }
