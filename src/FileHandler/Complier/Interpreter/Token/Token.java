@@ -1,6 +1,6 @@
 package FileHandler.Complier.Interpreter.Token;
 
-import ProcessFormats.Opcode.Argument.AddressMode;
+import ProcessFormats.Data.Opcode.Opcode.Argument.AddressMode;
 
 public class Token {
     private AddressMode addressMode;

@@ -2,10 +2,9 @@ import DataTypes.SynchronisedArrayList;
 import DataTypes.SynchronisedQueue;
 import FileHandler.Complier.Compiler;
 import FileHandler.FileReader;
-import ProcessFormats.Opcode.Opcode;
-import ProcessFormats.ProcessControlBlock.InternalObjects.MemoryLimits;
+import Memory.MemoryChip;
+import ProcessFormats.Data.Opcode.Opcode;
 import ProcessFormats.ProcessControlBlock.PCB;
-import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessPriority;
 import Processor.CPU;
 import Scheduler.LongTermScheduler;
 import Scheduler.ShortTermScheduler;
@@ -36,7 +35,7 @@ public class Testing {
         shortTermScheduler.start();
         cpu.start();
 
-        int pointer = 0;
+        /*int pointer = 0;
 
         for(int x = 0; x < 20; x++){
             int size = rand.nextInt(100)+1;
@@ -59,7 +58,8 @@ public class Testing {
             e.printStackTrace();
         }
 
-        jobQueue.add(new PCB(new MemoryLimits(pointer, pointer+5, 5), ProcessPriority.LOW));
+        jobQueue.add(new PCB(new MemoryLimits(pointer, pointer+5, 5), ProcessPriority.LOW));*/
 
+        MemoryChip memoryChip = new MemoryChip(144);
     }
 }

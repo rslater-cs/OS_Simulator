@@ -1,6 +1,6 @@
 package Memory;
 
-import ProcessFormats.Opcode.Opcode;
+import ProcessFormats.Data.Opcode.Opcode;
 
 public class MemoryChip {
     private Opcode[][] memoryArray;
@@ -13,8 +13,8 @@ public class MemoryChip {
         int squareSize = (int)Math.sqrt(size);
         if(squareSize * squareSize != size){
             squareSize = squareSize+1;
+            System.out.println("Memory size could not be evenly split, memory size has been changed to: " + (squareSize*squareSize));
         }
-        System.out.println("Memory size could not be evenly split, memory size has been changed to:" + (squareSize*squareSize));
         return new Opcode[squareSize][squareSize];
     }
 

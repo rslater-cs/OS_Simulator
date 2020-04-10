@@ -1,7 +1,7 @@
 package Processor;
 
 
-import ProcessFormats.Opcode.Opcode;
+import ProcessFormats.Data.Opcode.Opcode;
 import ProcessFormats.ProcessControlBlock.PCB;
 import DataTypes.SynchronisedQueue;
 import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessState;

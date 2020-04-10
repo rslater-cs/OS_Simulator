@@ -1,7 +1,7 @@
 package FileHandler.Complier;
 
 import FileHandler.Complier.Interpreter.Interpreter;
-import ProcessFormats.Opcode.Opcode;
+import ProcessFormats.Data.Opcode.Opcode;
 
 import java.util.ArrayList;
 

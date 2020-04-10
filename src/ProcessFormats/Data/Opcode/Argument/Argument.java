@@ -1,4 +1,4 @@
-package ProcessFormats.Opcode.Argument;
+package ProcessFormats.Data.Opcode.Argument;
 
 public class Argument {
     private String stringArgument;
