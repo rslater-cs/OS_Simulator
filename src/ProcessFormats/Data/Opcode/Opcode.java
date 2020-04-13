@@ -1,6 +1,6 @@
 package ProcessFormats.Data.Opcode;
 
-import ProcessFormats.Data.Opcode.Argument.Argument;
+import ProcessFormats.Data.Opcode.ArgumentObjects.Argument;
 
 public class Opcode {
     private String process;

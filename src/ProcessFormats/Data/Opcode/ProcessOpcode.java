@@ -1,6 +1,6 @@
 package ProcessFormats.Data.Opcode;
 
-import ProcessFormats.Data.Opcode.Argument.Argument;
+import ProcessFormats.Data.Opcode.ArgumentObjects.Argument;
 
 public class ProcessOpcode extends MainOpcode{
     private Argument[] args;

@@ -1,8 +1,8 @@
 package FileHandler.Complier.Interpreter;
 
 import FileHandler.Complier.Variables;
-import ProcessFormats.Data.Opcode.Opcode.Argument.AddressMode;
-import ProcessFormats.Data.Opcode.Opcode.Argument.Argument;
+import ProcessFormats.Data.Opcode.ArgumentObjects.AddressMode;
+import ProcessFormats.Data.Opcode.ArgumentObjects.Argument;
 import ProcessFormats.Data.Opcode.Opcode;
 
 import java.util.ArrayList;

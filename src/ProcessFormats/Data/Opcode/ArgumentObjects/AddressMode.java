@@ -1,4 +1,4 @@
-package ProcessFormats.Data.Opcode.Argument;
+package ProcessFormats.Data.Opcode.ArgumentObjects;
 
 public enum AddressMode {
     IMMEDIATE,
