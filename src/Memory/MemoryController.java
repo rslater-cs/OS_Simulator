@@ -2,6 +2,7 @@ package Memory;
 
 import DataTypes.BiDirectionalQueue;
 import DataTypes.SynchronisedQueue;
+import Memory.Pointers.MemoryDataPointer;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.Data.Opcode.Opcode;
 
@@ -11,9 +12,8 @@ import java.util.Map;
 
 public class MemoryController extends Thread{
     private MemoryChip memoryChip;
-    private int memoryChipSize = 0;
-    private int memoryPointer = 0;
-    private Map<Integer, Integer> absoluteAddresses = new HashMap<>();
+    private int memoryChipSize;
+    private Map<Integer, MemoryDataPointer> absoluteAddresses = new HashMap<>();
     private ArrayList<MemoryDataPointer> openDataPoints = new ArrayList<>();
     private BiDirectionalQueue<Opcode> dataQueue;
     private SynchronisedQueue<Address> addressQueue;
@@ -58,7 +58,7 @@ public class MemoryController extends Thread{
 
     private int getAbsoluteAddress(Address relativeAddress){
         if(absoluteAddresses.containsKey(relativeAddress)){
-            return relativeAddress.getAddress() + absoluteAddresses.get(relativeAddress.getPid());
+            return relativeAddress.getAddress() + absoluteAddresses.get(relativeAddress.getPid()).getStart();
         }
         return relativeAddress.getAddress() + findStoragePoint(relativeAddress.getPid());
     }
@@ -84,6 +84,21 @@ public class MemoryController extends Thread{
     }
 
     private void deleteData(int pid){
+        if(!joinPointers(absoluteAddresses.get(pid))) openDataPoints.add(absoluteAddresses.get(pid));
+        absoluteAddresses.remove(pid);
+    }
 
+    private boolean joinPointers(MemoryDataPointer pointer){
+        boolean hasJoined = false;
+        for(int x = 0; x < openDataPoints.size(); x++){
+            if(openDataPoints.get(x).getStart() == pointer.getEnd()){
+                openDataPoints.get(x).setStart(pointer.getStart());
+                hasJoined = true;
+            } else if(openDataPoints.get(x).getEnd() == pointer.getStart()){
+                openDataPoints.get(x).setEnd(pointer.getEnd());
+                hasJoined = true;
+            }
+        }
+        return hasJoined;
     }
 }

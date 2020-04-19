@@ -6,52 +6,44 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 
 public class Letter {
+    private GridPane letterGrid = new GridPane();
     private Text letter;
-    private LetterType type;
-    private static final int size = 10;
-    private boolean isFocus = true;
-    private static final Rectangle cursor = new Rectangle(1, size);
+    private static final Rectangle cursorSymbol = new Rectangle(2, 10);
 
     public Letter(String letter){
-        this.letter = new Text(size, size, letter);
+        this.letter = new Text(letter);
+        this.letterGrid.add(this.letter, 0, 0);
         setType(LetterType.NORMAL);
     }
 
-    public int getSize(){
-        return size;
+    public void setFocus(boolean isFocus){
+        if(isFocus){
+            this.letterGrid.add(cursorSymbol, 2, 10);
+        }else{
+            if(this.letterGrid.getChildren().size() == 2){
+                this.letterGrid.getChildren().remove(1);
+            }
+        }
     }
 
-    public String getLetter() {
+    public void setType(LetterType letterType){
+        this.letter.setFill(getColour(letterType));
+    }
+
+    public String getLetter(){
         return letter.getText();
     }
 
-    public LetterType getType() {
-        return type;
+    public GridPane getRender(){
+        return letterGrid;
     }
 
-    public void setType(LetterType type) {
-        this.type = type;
-        this.letter.setFill(makeColour(type));
-    }
-
-    public void setFocus(boolean focus){
-        isFocus = focus;
-    }
-
-    public GridPane render(){
-        final GridPane grid = new GridPane();
-        grid.add(letter, 0, 0);
-        if(isFocus){
-            cursor.setFill(Color.WHITE);
-            grid.add(cursor, 1, 0);
-        }
-        return grid;
-    }
-
-    private Color makeColour(LetterType type){
-        return switch (type) {
+    private Color getColour(LetterType letterType){
+        return switch(letterType){
             case NORMAL -> Color.WHITE;
-            case FILLED -> Color.GREEN;
+            case FUNCTION -> Color.GREEN;
+            case DIRECTORY -> Color.BLUE;
+            case CONNECTOR -> Color.YELLOW;
             case UNKNOWN -> Color.RED;
         };
     }

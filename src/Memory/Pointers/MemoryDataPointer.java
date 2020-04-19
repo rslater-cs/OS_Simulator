@@ -1,6 +1,4 @@
-package Memory;
-
-import java.util.ArrayList;
+package Memory.Pointers;
 
 public class MemoryDataPointer {
     private int start;
