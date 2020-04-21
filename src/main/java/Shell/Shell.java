@@ -1,5 +1,14 @@
 package Shell;
 
+import DataTypes.BiDirectionalQueue;
+import DataTypes.SynchronisedQueue;
+import Memory.MemoryController;
+import ProcessFormats.Data.MemoryAddress.Address;
+import ProcessFormats.Data.Opcode.Opcode;
+import Processor.CPU;
+import Scheduler.ShortTermScheduler;
+import Shell.CommandExecuter.Executer;
+import Shell.History.HistoryBox;
 import Shell.Text.MessageBox;
 import Shell.Text.Validater.Validation;
 import Shell.Text.userLine.TextBox;
@@ -13,8 +22,8 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-
 
 
 public class Shell extends Application {
@@ -28,23 +37,51 @@ public class Shell extends Application {
     private static final double OUTPUT_TEXT_WIDTH = 900;
     private MessageBox textView = new MessageBox(OUTPUT_TEXT_HEIGHT, OUTPUT_TEXT_WIDTH, background);
 
+    private HistoryBox history = new HistoryBox();
+
+    GridPane grid = new GridPane();
+
+    private static final double PADDING = 10;
+
+    private static final Rectangle cursor = new Rectangle(2, 15);
+
+    private Executer executer;
+
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
     public void start(Stage stage) throws Exception {
-        GridPane grid = new GridPane();
+        makeStage(stage);
+        makeComponents();
+    }
+
+    private void makeStage(Stage stage){
+        cursor.setFill(Color.WHITE);
+        GridPane gridPane = makeCursorGrid();
         grid.add(textView.getRender(), 0, 0);
-        grid.add(userRegion.getRender(), 0, 1);
+        grid.add(gridPane, 0, 1);
+
         Scene scene = new Scene(grid, OUTPUT_TEXT_WIDTH, OUTPUT_TEXT_HEIGHT+COMMAND_LINE_HEIGHT);
         scene.setFill(Color.BLACK);
-
         scene.setOnKeyPressed(this::decode);
 
         stage.setScene(scene);
         stage.setTitle(TITLE);
         stage.show();
+    }
+
+    private void makeComponents(){
+        SynchronisedQueue<Address> addressQueue = new SynchronisedQueue<>(1);
+        BiDirectionalQueue<Opcode> dataQueue = new BiDirectionalQueue<>(1);
+
+        ShortTermScheduler scheduler = new ShortTermScheduler(null, null, true);
+
+        CPU processor = new CPU();
+        executer = new Executer(processor, addressQueue, dataQueue, scheduler);
+        MemoryController ram = new MemoryController(dataQueue, addressQueue, 64, true);
+        ram.start();
     }
 
     private void decode(KeyEvent e){
@@ -63,13 +100,33 @@ public class Shell extends Application {
         } else if(code.isWhitespaceKey()){
             if(code == KeyCode.ENTER){
                textView.addMessage(userRegion.toString());
-               userRegion.reset();
+               Exception exception = executer.start(userRegion.toString());
+               if(exception != null){
+                   textView.addMessage(exception.toString());
+               }
+               history.addHistory(userRegion);
+               userRegion = new TextBox(background, COMMAND_LINE_HEIGHT);
+               changeText();
             } else {
                 letter = " ";
                 enter = true;
             }
         } else if(code == KeyCode.BACK_SPACE){
             userRegion.deleteLast();
+        }else if (code.isArrowKey()){
+            if(code == KeyCode.UP){
+                userRegion = history.incHistory();
+                changeText();
+            } else if(code == KeyCode.DOWN){
+                TextBox temp = history.decHistory();
+                if(temp != null) {
+                    userRegion = temp;
+                }
+                else{
+                    userRegion = new TextBox(background, COMMAND_LINE_HEIGHT);
+                }
+                changeText();
+            }
         }else if(!isSpecialKey(code)){
             if(e.isShiftDown()){
                 letter = e.getText().toUpperCase();
@@ -82,6 +139,19 @@ public class Shell extends Application {
         if(enter) {
             userRegion.add(letter);
         }
+    }
+
+    private void changeText(){
+        grid.getChildren().remove(1);
+        grid.add(makeCursorGrid(), 0, 1);
+    }
+
+    private GridPane makeCursorGrid(){
+        GridPane gridPane = new GridPane();
+        gridPane.setBackground(background);
+        gridPane.add(userRegion.getRender(), 0, 0);
+        gridPane.add(cursor, 1, 0);
+        return gridPane;
     }
 
     private boolean isSpecialKey(KeyCode code){

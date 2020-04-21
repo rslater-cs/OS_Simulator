@@ -16,8 +16,8 @@ public class CPU extends Thread{
     private int multiplier = 1;
     //private CPUOperations cpuOperations = new CPUOperations();
 
-    public CPU(SynchronisedQueue<PCB> readyQueue, SynchronisedQueue<PCB> jobQueue, SynchronisedQueue<Integer> addressRequestQueue,
-               SynchronisedQueue<Opcode> addressReceiveQueue, int freq, boolean computerIsRunning){
+    public CPU(/*SynchronisedQueue<PCB> readyQueue, SynchronisedQueue<PCB> jobQueue, SynchronisedQueue<Integer> addressRequestQueue,
+               SynchronisedQueue<Opcode> addressReceiveQueue, int freq, boolean computerIsRunning*/){
         this.freq = freq;
         this.readyQueue = readyQueue;
         this.jobQueue = jobQueue;
@@ -54,6 +54,7 @@ public class CPU extends Thread{
 
     public void setMultiplier(int multiplier){
         this.multiplier = multiplier;
+        System.out.println(multiplier);
     }
 
     private void clock(){

@@ -3,7 +3,6 @@ package Scheduler;
 import DataTypes.SynchronisedArrayList;
 import DataTypes.SynchronisedQueue;
 import ProcessFormats.ProcessControlBlock.PCB;
-import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessState;
 
 public class ShortTermScheduler extends Thread{
     private SynchronisedArrayList<PCB> sortedJobs;
@@ -22,10 +21,6 @@ public class ShortTermScheduler extends Thread{
             final int leastExecuted = getLeastExecuted();
             if(leastExecuted > -1) {
                 PCB pcb = sortedJobs.remove(leastExecuted);
-                if(pcb.getProcessState() == ProcessState.NEW){
-                    pcb.setProcessState(ProcessState.READY);
-                    pcb.setID(pid++);
-                }
                 readyQueue.add(pcb);
             }
         }
@@ -42,6 +37,10 @@ public class ShortTermScheduler extends Thread{
             }
         }
         return smallestExecutionIndex;
+    }
+
+    public int getAvaliblePID(){
+        return pid++;
     }
 
 }

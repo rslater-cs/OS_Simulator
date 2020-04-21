@@ -6,13 +6,12 @@ public class Argument {
     private AddressMode addressMode;
 
     public Argument(String stringArgument, AddressMode addressMode){
-        this.stringArgument = stringArgument;
-        try {
-            this.intArgument = Integer.parseInt(stringArgument);
-        } catch(Exception e){
-            this.intArgument = -1;
-        }
+        formatArg(stringArgument);
         this.addressMode = addressMode;
+    }
+
+    public void setArgument(String arg){
+        formatArg(arg);
     }
 
     public String getValue() {
@@ -25,6 +24,15 @@ public class Argument {
 
     public AddressMode getAddressMode() {
         return addressMode;
+    }
+
+    private void formatArg(String arg){
+        this.stringArgument = arg;
+        try{
+            this.intArgument = Integer.parseInt(arg);
+        }catch (Exception e){
+            this.intArgument = 0;
+        }
     }
 
     @Override

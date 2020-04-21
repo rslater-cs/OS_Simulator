@@ -1,6 +1,5 @@
 package Shell.Text.Validater;
 
-import Shell.AutoFiller.Functions;
 import Shell.Text.userLine.LetterType;
 
 import java.util.regex.Pattern;

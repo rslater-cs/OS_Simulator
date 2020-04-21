@@ -18,7 +18,7 @@ public class Word {
         Letter text = new Letter(letter);
         word.add(text.getRender(), letters.size(), 0);
         this.letters.add(letters.size(), text);
-        setFocusForward();
+        //setFocusForward();
     }
 
     private void setFocusForward(){
@@ -42,7 +42,7 @@ public class Word {
         if(letters.size() > 0){
             letters.remove(letters.size()-1);
             word.getChildren().remove(letters.size());
-            setFocusForward();
+            //setFocusForward();
             return true;
         }
         return false;

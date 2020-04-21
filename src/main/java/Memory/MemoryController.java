@@ -43,6 +43,7 @@ public class MemoryController extends Thread{
             if(relativeAddress.getAddress() == -1){
                 deleteData(relativeAddress.getPid());
             } else{
+                /*
                 final int absoluteAddress = getAbsoluteAddress(relativeAddress);
                 final int xAddress = absoluteAddress / memoryChipSize;
                 final int yAddress = absoluteAddress % memoryChipSize;
@@ -52,12 +53,15 @@ public class MemoryController extends Thread{
                 } else{
                     dataQueue.reply(memoryChip.getData(xAddress, yAddress));
                 }
+                 */
+                System.out.println(dataQueue.receive() + "received");
+                System.out.println(relativeAddress.getAddress());
             }
         }
     }
 
     private int getAbsoluteAddress(Address relativeAddress){
-        if(absoluteAddresses.containsKey(relativeAddress)){
+        if(absoluteAddresses.containsKey(relativeAddress.getPid())){
             return relativeAddress.getAddress() + absoluteAddresses.get(relativeAddress.getPid()).getStart();
         }
         return relativeAddress.getAddress() + findStoragePoint(relativeAddress.getPid());
@@ -100,5 +104,18 @@ public class MemoryController extends Thread{
             }
         }
         return hasJoined;
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer memorySummary = new StringBuffer();
+
+        for(int y = 0; y < memoryChipSize; y++){
+            for(int x = 0; x < memoryChipSize; x++){
+                memorySummary.append(memoryChip.getData(x, y));
+            }
+        }
+
+        return memorySummary.toString();
     }
 }

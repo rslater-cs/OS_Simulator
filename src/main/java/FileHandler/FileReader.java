@@ -11,7 +11,7 @@ public class FileReader {
     public FileReader(String path){
         this.path = path;
         this.file = createScanner();
-        if(file == null) throw new IllegalArgumentException("File creation failed");
+        if(file == null) throw new IllegalArgumentException("File cannot be found or accessed");
     }
 
     public String getLine(){
@@ -22,7 +22,7 @@ public class FileReader {
         }
     }
 
-    public String[] getAll(){
+    public String[] getRest(){
         ArrayList<String> lines = new ArrayList<>();
         String line;
         while((line = getLine()) != null){
@@ -35,7 +35,6 @@ public class FileReader {
         try{
             return new Scanner(new File(path));
         }catch(Exception e){
-            e.printStackTrace();
             return null;
         }
     }

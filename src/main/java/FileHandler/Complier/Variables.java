@@ -3,7 +3,6 @@ package FileHandler.Complier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class Variables {
     private ArrayList<String> variableNames = new ArrayList<>();
@@ -20,5 +19,23 @@ public class Variables {
     public String replace(String name){
         if(variables.containsKey(name)) return variables.get(name);
         return add(name);
+    }
+
+    public int size(){
+        return variables.size();
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer variableSummary = new StringBuffer();
+
+        for(String name : variables.keySet()){
+            variableSummary.append(name);
+            variableSummary.append(" : ");
+            variableSummary.append(variables.get(name));
+            variableSummary.append("\n");
+        }
+
+        return variableSummary.toString();
     }
 }

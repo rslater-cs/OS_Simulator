@@ -1,6 +1,5 @@
 package ProcessFormats.ProcessControlBlock;
 
-import ProcessFormats.ProcessControlBlock.InternalObjects.MemoryLimits;
 import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessPriority;
 import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessState;
 import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessTime;
@@ -9,18 +8,15 @@ public class PCB {
     private ProcessState processState = ProcessState.NEW;
     private int processID = -1;
     private int processCounter = 0;
-    private MemoryLimits memoryLimits;
+    private int memorySize;
     private ProcessPriority priority;
     private int quantum;
     private ProcessTime processTime = new ProcessTime();
 
-    public PCB(MemoryLimits memoryLimits, ProcessPriority priority){
-        this.memoryLimits = memoryLimits;
+    public PCB(int pid, int memorySize, ProcessPriority priority){
+        this.processID = pid;
+        this.memorySize = memorySize;
         this.priority = priority;
-    }
-
-    public void setID(int PID){
-        processID = PID;
     }
 
     public int getID(){
@@ -29,7 +25,7 @@ public class PCB {
 
     public int getProcessCounter() {
         processTime.setEnd();
-        if(processCounter - memoryLimits.getEnd() == 0){
+        if(processCounter+1 - memorySize == 0){
             this.processState = ProcessState.TERMINATING;
         }
         return processCounter++;
@@ -40,7 +36,7 @@ public class PCB {
     }
 
     public int getMemoryEnd() {
-        return memoryLimits.getEnd();
+        return memorySize;
     }
 
     public ProcessState getProcessState() {
@@ -60,14 +56,6 @@ public class PCB {
         return priority;
     }
 
-    public int getMemoryStart() {
-        return memoryLimits.getStart();
-    }
-
-    public int getProgramSize(){
-        return memoryLimits.getSize();
-    }
-
     public int getQuantum() {
         return quantum;
     }
@@ -82,6 +70,6 @@ public class PCB {
 
     @Override
     public String toString(){
-        return processID + ", " + priority + ", " + processState + ", " + processCounter + ", " + quantum + ", " + getExecutionTime();
+        return processID + ", " + priority + ", " + processState + ", " + processCounter + ", " + quantum + ", " + memorySize + ", " + getExecutionTime();
     }
 }
