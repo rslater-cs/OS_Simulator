@@ -5,6 +5,8 @@ import DataTypes.SynchronisedQueue;
 import FileHandler.Complier.Compiler;
 import FileHandler.FileReader;
 import ProcessFormats.Data.MemoryAddress.Address;
+import ProcessFormats.Data.Opcode.ArgumentObjects.AddressMode;
+import ProcessFormats.Data.Opcode.ArgumentObjects.Argument;
 import ProcessFormats.Data.Opcode.Opcode;
 import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessPriority;
 import ProcessFormats.ProcessControlBlock.PCB;
@@ -87,11 +89,12 @@ public class Executer {
         if(priority == null) return new Exception("Code file does not correctly specify program priority");
 
         ArrayList<Opcode> opcodes = compiler.compile(file.getRest());
+        int instructionSize = opcodes.remove(0).getIntArg(0);
+        opcodes.add(0, new Opcode("header", new Argument[]{new Argument(Integer.toString(opcodes.size()+1), AddressMode.NONE)}));
 
         final int pid = scheduler.getAvaliblePID();
 
         for(int x = 0; x < opcodes.size(); x++){
-            System.out.println(opcodes.get(x));
             addressQueue.add(new Address(pid, x));
             dataQueue.send(opcodes.get(x));
         }

@@ -80,7 +80,7 @@ public class Shell extends Application {
 
         CPU processor = new CPU();
         executer = new Executer(processor, addressQueue, dataQueue, scheduler);
-        MemoryController ram = new MemoryController(dataQueue, addressQueue, 64, true);
+        MemoryController ram = new MemoryController(dataQueue, addressQueue, 35, true);
         ram.start();
     }
 

@@ -4,6 +4,8 @@ import DataTypes.BiDirectionalQueue;
 import DataTypes.SynchronisedQueue;
 import Memory.Pointers.MemoryDataPointer;
 import ProcessFormats.Data.MemoryAddress.Address;
+import ProcessFormats.Data.Opcode.ArgumentObjects.AddressMode;
+import ProcessFormats.Data.Opcode.ArgumentObjects.Argument;
 import ProcessFormats.Data.Opcode.Opcode;
 
 import java.util.ArrayList;
@@ -25,7 +27,7 @@ public class MemoryController extends Thread{
         this.dataQueue = dataQueue;
         this.addressQueue = addressQueue;
         this.computerIsRunning = computerIsRunning;
-        this.openDataPoints.add(new MemoryDataPointer(0, memoryChipSize));
+        this.openDataPoints.add(new MemoryDataPointer(0, memoryChipSize*memoryChipSize));
     }
 
     private int fixSize(int size){
@@ -43,48 +45,66 @@ public class MemoryController extends Thread{
             if(relativeAddress.getAddress() == -1){
                 deleteData(relativeAddress.getPid());
             } else{
-                /*
-                final int absoluteAddress = getAbsoluteAddress(relativeAddress);
-                final int xAddress = absoluteAddress / memoryChipSize;
-                final int yAddress = absoluteAddress % memoryChipSize;
+                int absoluteAddress;
                 if(dataQueue.senderSize() > 0){
                     Opcode opcode = dataQueue.receive();
-                    memoryChip.setData(xAddress, yAddress, opcode);
+                    if(opcode.getProcess().equals("header")){
+                        absoluteAddress = createProgramSpace(relativeAddress.getPid(), opcode.getIntArg(0));
+                    }else{
+                        absoluteAddress = getAbsoluteAddress(relativeAddress);
+                    }
+                    if(absoluteAddress == -1){
+                        printError("Memory failed to store data, due to low available storage or missing process identification");
+                    }else{
+                        final int[] addresses = decodeAddress(absoluteAddress);
+                        memoryChip.setData(addresses[0], addresses[1], opcode);
+                    }
+                    System.out.println("address: " + absoluteAddress + ", opcode: " + opcode);
                 } else{
-                    dataQueue.reply(memoryChip.getData(xAddress, yAddress));
+                    absoluteAddress = getAbsoluteAddress(relativeAddress);
+                    final int[] addresses = decodeAddress(absoluteAddress);
+                    dataQueue.reply(memoryChip.getData(addresses[0], addresses[1]));
                 }
-                 */
-                System.out.println(dataQueue.receive() + "received");
-                System.out.println(relativeAddress.getAddress());
             }
         }
+    }
+
+    public int[] decodeAddress(int address){
+        return new int[]{address%memoryChipSize, address/memoryChipSize};
     }
 
     private int getAbsoluteAddress(Address relativeAddress){
         if(absoluteAddresses.containsKey(relativeAddress.getPid())){
-            return relativeAddress.getAddress() + absoluteAddresses.get(relativeAddress.getPid()).getStart();
+            final int absoluteAddress = relativeAddress.getAddress() + absoluteAddresses.get(relativeAddress.getPid()).getStart();
+            if(absoluteAddress >= absoluteAddresses.get(relativeAddress.getPid()).getEnd()) return -1;
+            return absoluteAddress;
         }
-        return relativeAddress.getAddress() + findStoragePoint(relativeAddress.getPid());
+        return -1;
     }
 
-    private int findStoragePoint(int pid){
-        MemoryDataPointer freeSpace = largestFreeSpace();
-        if(freeSpace == null) throw new IndexOutOfBoundsException("Memory full, data could not be stored");
-        return freeSpace.dec();
-    }
-
-    private MemoryDataPointer largestFreeSpace(){
-        MemoryDataPointer freeSpace = null;
-        int maxSpace = 0;
+    private int createProgramSpace(int pid, int spaceSize){
+        int spaceDifference = Integer.MAX_VALUE;
+        MemoryDataPointer optimalSpace = null;
         for(MemoryDataPointer pointer : openDataPoints){
-            if(pointer.getBounds() == 0){
-                openDataPoints.remove(pointer);
-            }else if(pointer.getBounds() > maxSpace){
-                maxSpace = pointer.getBounds();
-                freeSpace = pointer;
+            final int difference = pointer.getBounds() - spaceSize;
+            if(difference < spaceDifference && difference >= 0){
+                spaceDifference = difference;
+                optimalSpace = pointer;
             }
         }
-        return freeSpace;
+        if(optimalSpace != null){
+            MemoryDataPointer perfectSpace = splitPointer(optimalSpace, spaceSize);
+            absoluteAddresses.put(pid, perfectSpace);
+            return perfectSpace.getStart();
+        }
+        return -1;
+    }
+
+    private MemoryDataPointer splitPointer(MemoryDataPointer pointer, int size){
+        final int end = pointer.getStart()+size;
+        MemoryDataPointer finalPointer = new MemoryDataPointer(pointer.getStart(), end);
+        pointer.setStart(end);
+        return finalPointer;
     }
 
     private void deleteData(int pid){
@@ -106,13 +126,22 @@ public class MemoryController extends Thread{
         return hasJoined;
     }
 
+    private void printError(String errorMessage){
+        dataQueue.reply(new Opcode("err", new Argument[]{new Argument(new RuntimeException(errorMessage).toString(), AddressMode.NONE)}));
+    }
+
     @Override
     public String toString() {
         StringBuffer memorySummary = new StringBuffer();
 
         for(int y = 0; y < memoryChipSize; y++){
             for(int x = 0; x < memoryChipSize; x++){
+                memorySummary.append("address: ");
+                memorySummary.append(x);
+                memorySummary.append(y);
+                memorySummary.append(", data: ");
                 memorySummary.append(memoryChip.getData(x, y));
+                memorySummary.append("\n");
             }
         }
 
