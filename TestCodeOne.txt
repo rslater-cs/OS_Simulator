@@ -1,5 +1,5 @@
 priority = low
-x = 1
+x = 1 + 2
 y = 3
 z = x + y
 z = z * 4

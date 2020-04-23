@@ -1,11 +1,14 @@
 package Shell;
 
 import DataTypes.BiDirectionalQueue;
+import DataTypes.SynchronisedArrayList;
 import DataTypes.SynchronisedQueue;
 import Memory.MemoryController;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.Data.Opcode.Opcode;
+import ProcessFormats.ProcessControlBlock.PCB;
 import Processor.CPU;
+import Scheduler.LongTermScheduler;
 import Scheduler.ShortTermScheduler;
 import Shell.CommandExecuter.Executer;
 import Shell.History.HistoryBox;
@@ -75,11 +78,15 @@ public class Shell extends Application {
     private void makeComponents(){
         SynchronisedQueue<Address> addressQueue = new SynchronisedQueue<>(1);
         BiDirectionalQueue<Opcode> dataQueue = new BiDirectionalQueue<>(1);
+        SynchronisedQueue<PCB> jobQueue = new SynchronisedQueue<>(1000);
+        SynchronisedArrayList<PCB> sortedQueue = new SynchronisedArrayList<>(100);
+        SynchronisedQueue<PCB> readyQueue = new SynchronisedQueue<>(10);
 
-        ShortTermScheduler scheduler = new ShortTermScheduler(null, null, true);
+        LongTermScheduler longScheduler = new LongTermScheduler(jobQueue, sortedQueue, true, 10, 5);
+        ShortTermScheduler shortScheduler = new ShortTermScheduler(sortedQueue, readyQueue, true);
 
-        CPU processor = new CPU();
-        executer = new Executer(processor, addressQueue, dataQueue, scheduler);
+        CPU processor = new CPU(readyQueue, jobQueue, addressQueue, dataQueue, 1, true);
+        executer = new Executer(processor, addressQueue, dataQueue, jobQueue);
         MemoryController ram = new MemoryController(dataQueue, addressQueue, 35, true);
         ram.start();
     }

@@ -17,7 +17,7 @@ public class Compiler {
             opcodes.addAll(interpreter.interpret(code[x], x));
         }
 
-        opcodes.add(0, new Opcode("", new Argument[]{new Argument(Integer.toString(opcodes.size()), AddressMode.NONE)}));
+        opcodes.add(0, new Opcode("", new Argument[]{new Argument(variables.replace("ret"), AddressMode.NONE)}));
 
         for(int x = 0; x < variables.size(); x++){
             opcodes.add(new Opcode("", new Argument[]{new Argument("", AddressMode.NONE)}));

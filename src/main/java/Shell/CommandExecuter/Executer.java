@@ -8,10 +8,10 @@ import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.Data.Opcode.ArgumentObjects.AddressMode;
 import ProcessFormats.Data.Opcode.ArgumentObjects.Argument;
 import ProcessFormats.Data.Opcode.Opcode;
+import ProcessFormats.ProcessControlBlock.InternalObjects.MemoryLimits;
 import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessPriority;
 import ProcessFormats.ProcessControlBlock.PCB;
 import Processor.CPU;
-import Scheduler.ShortTermScheduler;
 import Shell.Text.Validater.Functions;
 import Shell.Text.Validater.Validation;
 import Shell.Text.userLine.LetterType;
@@ -23,13 +23,14 @@ public class Executer {
     private Compiler compiler = new Compiler();
     private SynchronisedQueue<Address> addressQueue;
     private BiDirectionalQueue<Opcode> dataQueue;
-    private ShortTermScheduler scheduler;
+    private SynchronisedQueue<PCB> jobQueue;
+    private ProcessIDAssigner pidAssigner = new ProcessIDAssigner();
 
-    public Executer(CPU processor, SynchronisedQueue<Address> addressQueue, BiDirectionalQueue<Opcode> dataQueue, ShortTermScheduler scheduler){
+    public Executer(CPU processor, SynchronisedQueue<Address> addressQueue, BiDirectionalQueue<Opcode> dataQueue, SynchronisedQueue<PCB> jobQueue){
         this.processor = processor;
         this.addressQueue = addressQueue;
         this.dataQueue = dataQueue;
-        this.scheduler = scheduler;
+        this.jobQueue = jobQueue;
     }
 
     public Exception start(String line){
@@ -89,17 +90,21 @@ public class Executer {
         if(priority == null) return new Exception("Code file does not correctly specify program priority");
 
         ArrayList<Opcode> opcodes = compiler.compile(file.getRest());
-        int instructionSize = opcodes.remove(0).getIntArg(0);
+
+        int returnAddress = opcodes.remove(0).getArg(0).getIntArgument();
+        System.out.println(returnAddress);
         opcodes.add(0, new Opcode("header", new Argument[]{new Argument(Integer.toString(opcodes.size()+1), AddressMode.NONE)}));
 
-        final int pid = scheduler.getAvaliblePID();
+        final int size = opcodes.size();
+
+        final int pid = pidAssigner.getPID();
 
         for(int x = 0; x < opcodes.size(); x++){
             addressQueue.add(new Address(pid, x));
             dataQueue.send(opcodes.get(x));
         }
 
-        PCB pcb = new PCB(pid, opcodes.size(), priority);
+        PCB pcb = new PCB(pid, new MemoryLimits(1, size, opcodes.size()), returnAddress, priority);
 
         System.out.println(pcb);
 

@@ -16,11 +16,19 @@ public class Opcode {
         return process;
     }
 
-    public int getIntArg(int index){
+    public Argument getArg(int index){
         if(index < args.length) {
-            return args[index].getIntArgument();
+            return args[index];
         }
-        return Integer.MIN_VALUE;
+        return null;
+    }
+
+    public Argument[] getArgs(){
+        return args;
+    }
+
+    public int getArgNumber(){
+        return args.length;
     }
 
     public void setArg(int index, Argument value){

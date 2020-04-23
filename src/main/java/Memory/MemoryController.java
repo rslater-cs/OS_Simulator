@@ -49,7 +49,7 @@ public class MemoryController extends Thread{
                 if(dataQueue.senderSize() > 0){
                     Opcode opcode = dataQueue.receive();
                     if(opcode.getProcess().equals("header")){
-                        absoluteAddress = createProgramSpace(relativeAddress.getPid(), opcode.getIntArg(0));
+                        absoluteAddress = createProgramSpace(relativeAddress.getPid(), opcode.getArg(0).getIntArgument());
                     }else{
                         absoluteAddress = getAbsoluteAddress(relativeAddress);
                     }
@@ -62,8 +62,12 @@ public class MemoryController extends Thread{
                     System.out.println("address: " + absoluteAddress + ", opcode: " + opcode);
                 } else{
                     absoluteAddress = getAbsoluteAddress(relativeAddress);
-                    final int[] addresses = decodeAddress(absoluteAddress);
-                    dataQueue.reply(memoryChip.getData(addresses[0], addresses[1]));
+                    if(absoluteAddress == -1){
+                        printError("Memory address requested is out of bounds of program space");
+                    }else {
+                        final int[] addresses = decodeAddress(absoluteAddress);
+                        dataQueue.reply(memoryChip.getData(addresses[0], addresses[1]));
+                    }
                 }
             }
         }
