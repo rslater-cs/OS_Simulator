@@ -1,6 +1,6 @@
 package Memory;
 
-import DataTypes.BiDirectionalQueue;
+
 import DataTypes.SynchronisedQueue;
 import Memory.Pointers.MemoryDataPointer;
 import ProcessFormats.Data.MemoryAddress.Address;
@@ -17,14 +17,18 @@ public class MemoryController extends Thread{
     private int memoryChipSize;
     private Map<Integer, MemoryDataPointer> absoluteAddresses = new HashMap<>();
     private ArrayList<MemoryDataPointer> openDataPoints = new ArrayList<>();
-    private BiDirectionalQueue<Opcode> dataQueue;
+    private SynchronisedQueue<Opcode> dataQueueToCPU;
+    private SynchronisedQueue<Opcode> dataQueueToMemory;
     private SynchronisedQueue<Address> addressQueue;
     private boolean computerIsRunning;
 
-    public MemoryController(BiDirectionalQueue<Opcode> dataQueue, SynchronisedQueue<Address> addressQueue, int memorySize, boolean computerIsRunning){
+    public MemoryController(SynchronisedQueue<Opcode> dataQueueToCPU, SynchronisedQueue<Opcode> dataQueueToMemory,
+                            SynchronisedQueue<Address> addressQueue, int memorySize,
+                            boolean computerIsRunning){
         this.memoryChipSize = fixSize(memorySize);
         this.memoryChip = new MemoryChip(memoryChipSize);
-        this.dataQueue = dataQueue;
+        this.dataQueueToCPU = dataQueueToCPU;
+        this.dataQueueToMemory = dataQueueToMemory;
         this.addressQueue = addressQueue;
         this.computerIsRunning = computerIsRunning;
         this.openDataPoints.add(new MemoryDataPointer(0, memoryChipSize*memoryChipSize));
@@ -34,7 +38,7 @@ public class MemoryController extends Thread{
         int squareSize = (int)Math.sqrt(size);
         if(squareSize * squareSize != size){
             squareSize = squareSize+1;
-            System.out.println("Memory size could not be evenly split, memory size has been changed to: " + (squareSize*squareSize));
+            System.out.println("Page size could not be evenly split, memory size has been changed to: " + (squareSize*squareSize));
         }
         return squareSize;
     }
@@ -42,31 +46,34 @@ public class MemoryController extends Thread{
     public void run(){
         while(computerIsRunning){
             final Address relativeAddress = addressQueue.remove();
+            System.out.println(relativeAddress);
+            System.out.println(addressQueue.size());
             if(relativeAddress.getAddress() == -1){
                 deleteData(relativeAddress.getPid());
             } else{
-                int absoluteAddress;
-                if(dataQueue.senderSize() > 0){
-                    Opcode opcode = dataQueue.receive();
+                int absolutePage;
+                if(dataQueueToMemory.size() > 0){
+                    Opcode opcode = dataQueueToMemory.remove();
+                    System.out.println(opcode);
                     if(opcode.getProcess().equals("header")){
-                        absoluteAddress = createProgramSpace(relativeAddress.getPid(), opcode.getArg(0).getIntArgument());
+                        absolutePage = createProgramSpace(relativeAddress.getPid(), opcode.getArg(0).getIntArgument());
                     }else{
-                        absoluteAddress = getAbsoluteAddress(relativeAddress);
+                        absolutePage = getAbsoluteAddress(relativeAddress);
                     }
-                    if(absoluteAddress == -1){
+                    if(absolutePage == -1){
                         printError("Memory failed to store data, due to low available storage or missing process identification");
                     }else{
-                        final int[] addresses = decodeAddress(absoluteAddress);
+                        final int[] addresses = decodeAddress(relativeAddress.getAddress());
                         memoryChip.setData(addresses[0], addresses[1], opcode);
                     }
-                    System.out.println("address: " + absoluteAddress + ", opcode: " + opcode);
                 } else{
-                    absoluteAddress = getAbsoluteAddress(relativeAddress);
-                    if(absoluteAddress == -1){
+                    absolutePage = getAbsoluteAddress(relativeAddress);
+                    if(absolutePage == -1){
                         printError("Memory address requested is out of bounds of program space");
+                        dataQueueToCPU.add(new Opcode("memory err", null));
                     }else {
-                        final int[] addresses = decodeAddress(absoluteAddress);
-                        dataQueue.reply(memoryChip.getData(addresses[0], addresses[1]));
+                        final int[] addresses = decodeAddress(relativeAddress.getAddress());
+                        dataQueueToCPU.add(memoryChip.getData(addresses[0], addresses[1]));
                     }
                 }
             }
@@ -131,7 +138,7 @@ public class MemoryController extends Thread{
     }
 
     private void printError(String errorMessage){
-        dataQueue.reply(new Opcode("err", new Argument[]{new Argument(new RuntimeException(errorMessage).toString(), AddressMode.NONE)}));
+        dataQueueToCPU.add(new Opcode("err", new Argument[]{new Argument(new RuntimeException(errorMessage).toString(), AddressMode.NONE)}));
     }
 
     @Override

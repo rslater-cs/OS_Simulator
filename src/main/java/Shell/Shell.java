@@ -1,6 +1,5 @@
 package Shell;
 
-import DataTypes.BiDirectionalQueue;
 import DataTypes.SynchronisedArrayList;
 import DataTypes.SynchronisedQueue;
 import Memory.MemoryController;
@@ -77,7 +76,9 @@ public class Shell extends Application {
 
     private void makeComponents(){
         SynchronisedQueue<Address> addressQueue = new SynchronisedQueue<>(1);
-        BiDirectionalQueue<Opcode> dataQueue = new BiDirectionalQueue<>(1);
+        SynchronisedQueue<Opcode> dataToCPU = new SynchronisedQueue<>(1);
+        SynchronisedQueue<Opcode> dataToMemory = new SynchronisedQueue<>(1);
+
         SynchronisedQueue<PCB> jobQueue = new SynchronisedQueue<>(1000);
         SynchronisedArrayList<PCB> sortedQueue = new SynchronisedArrayList<>(100);
         SynchronisedQueue<PCB> readyQueue = new SynchronisedQueue<>(10);
@@ -85,9 +86,11 @@ public class Shell extends Application {
         LongTermScheduler longScheduler = new LongTermScheduler(jobQueue, sortedQueue, true, 10, 5);
         ShortTermScheduler shortScheduler = new ShortTermScheduler(sortedQueue, readyQueue, true);
 
-        CPU processor = new CPU(readyQueue, jobQueue, addressQueue, dataQueue, 1, true);
-        executer = new Executer(processor, addressQueue, dataQueue, jobQueue);
-        MemoryController ram = new MemoryController(dataQueue, addressQueue, 35, true);
+        SynchronisedQueue<String> printQueue = new SynchronisedQueue<>(100);
+
+        CPU processor = new CPU(readyQueue, jobQueue, addressQueue, dataToCPU, dataToMemory, printQueue,  1, true);
+        executer = new Executer(processor, addressQueue, dataToMemory, jobQueue);
+        MemoryController ram = new MemoryController(dataToCPU, dataToMemory, addressQueue, 35, true);
         ram.start();
     }
 

@@ -1,7 +1,6 @@
 package Processor;
 
 
-import DataTypes.BiDirectionalQueue;
 import DataTypes.SynchronisedQueue;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.Data.Opcode.ArgumentObjects.AddressMode;
@@ -13,7 +12,8 @@ public class CPU extends Thread{
     private SynchronisedQueue<PCB> readyQueue;
     private SynchronisedQueue<PCB> jobQueue;
     private SynchronisedQueue<Address> addressQueue;
-    private BiDirectionalQueue<Opcode> dataQueue;
+    private SynchronisedQueue<Opcode> dataToCPU;
+    private SynchronisedQueue<Opcode> dataToMemory;
     private SynchronisedQueue<String> printQueue;
     private int freq;
     private boolean computerIsRunning;
@@ -21,13 +21,14 @@ public class CPU extends Thread{
     private int returnAddress;
 
     public CPU(SynchronisedQueue<PCB> readyQueue, SynchronisedQueue<PCB> jobQueue, SynchronisedQueue<Address> addressQueue,
-               BiDirectionalQueue<Opcode> dataQueue, SynchronisedQueue<String> printQueue, int freq,
+               SynchronisedQueue<Opcode> dataToCPU, SynchronisedQueue<Opcode> dataToMemory, SynchronisedQueue<String> printQueue, int freq,
                boolean computerIsRunning){
         this.freq = freq;
         this.readyQueue = readyQueue;
         this.jobQueue = jobQueue;
         this.addressQueue = addressQueue;
-        this.dataQueue = dataQueue;
+        this.dataToCPU = dataToCPU;
+        this.dataToMemory = dataToMemory;
         this.computerIsRunning = computerIsRunning;
     }
 
@@ -42,7 +43,7 @@ public class CPU extends Thread{
 
     private Opcode fetch(int pid, int address){
         addressQueue.add(new Address(pid, address));
-        return dataQueue.receive();
+        return dataToCPU.remove();
     }
 
     private Opcode decode(Opcode opcode, int instructionLength, int pid){
@@ -73,12 +74,12 @@ public class CPU extends Thread{
             default -> out(new Argument[]{new Argument("cpu err", AddressMode.NONE)});
         };
         addressQueue.add(new Address(pid, returnAddress));
-        dataQueue.send(new Opcode("", new Argument[]{result}));
+        dataToMemory.add(new Opcode("", new Argument[]{result}));
     }
 
     private Argument str(int pid, int instructionLength, Opcode opcode){
         addressQueue.add(new Address(pid, opcode.getArg(0).getIntArgument()+instructionLength));
-        dataQueue.send(new Opcode("", new Argument[]{opcode.getArg(1)}));
+        dataToMemory.add(new Opcode("", new Argument[]{opcode.getArg(1)}));
         return new Argument(0, AddressMode.IMMEDIATE);
     }
 

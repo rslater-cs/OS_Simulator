@@ -1,6 +1,5 @@
 package Shell.CommandExecuter;
 
-import DataTypes.BiDirectionalQueue;
 import DataTypes.SynchronisedQueue;
 import FileHandler.Complier.Compiler;
 import FileHandler.FileReader;
@@ -22,11 +21,11 @@ public class Executer {
     private CPU processor;
     private Compiler compiler = new Compiler();
     private SynchronisedQueue<Address> addressQueue;
-    private BiDirectionalQueue<Opcode> dataQueue;
+    private SynchronisedQueue<Opcode> dataQueue;
     private SynchronisedQueue<PCB> jobQueue;
     private ProcessIDAssigner pidAssigner = new ProcessIDAssigner();
 
-    public Executer(CPU processor, SynchronisedQueue<Address> addressQueue, BiDirectionalQueue<Opcode> dataQueue, SynchronisedQueue<PCB> jobQueue){
+    public Executer(CPU processor, SynchronisedQueue<Address> addressQueue, SynchronisedQueue<Opcode> dataQueue, SynchronisedQueue<PCB> jobQueue){
         this.processor = processor;
         this.addressQueue = addressQueue;
         this.dataQueue = dataQueue;
@@ -101,7 +100,7 @@ public class Executer {
 
         for(int x = 0; x < opcodes.size(); x++){
             addressQueue.add(new Address(pid, x));
-            dataQueue.send(opcodes.get(x));
+            dataQueue.add(opcodes.get(x));
         }
 
         PCB pcb = new PCB(pid, new MemoryLimits(1, size, opcodes.size()), returnAddress, priority);
