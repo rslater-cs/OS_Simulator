@@ -6,6 +6,7 @@ import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.Data.Opcode.ArgumentObjects.AddressMode;
 import ProcessFormats.Data.Opcode.ArgumentObjects.Argument;
 import ProcessFormats.Data.Opcode.Opcode;
+import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessState;
 import ProcessFormats.ProcessControlBlock.PCB;
 
 public class CPU extends Thread{
@@ -29,6 +30,7 @@ public class CPU extends Thread{
         this.addressQueue = addressQueue;
         this.dataToCPU = dataToCPU;
         this.dataToMemory = dataToMemory;
+        this.printQueue = printQueue;
         this.computerIsRunning = computerIsRunning;
     }
 
@@ -36,12 +38,23 @@ public class CPU extends Thread{
         while(computerIsRunning){
             PCB pcb = readyQueue.remove();
             returnAddress = pcb.getReturnAddress() + pcb.getMemoryLimits().getEnd();
-            Opcode opcode = fetch(pcb.getID(), pcb.getProcessCounter());
-            decode(opcode, pcb.getMemoryLimits().getEnd(), pcb.getID());
+            int address = pcb.getProcessCounter();
+            System.out.println(address);
+            Opcode opcode = fetch(pcb.getID(), address);
+            opcode = decode(opcode, pcb.getMemoryLimits().getEnd(), pcb.getID());
+            execute(opcode, pcb.getID(), pcb.getMemoryLimits().getEnd());
+            //clock();
+            if(pcb.getProcessState() == ProcessState.TERMINATING){
+                addressQueue.add(new Address(pcb.getID(), -1));
+                pcb.setProcessState(ProcessState.TERMINATED);
+            } else{
+                jobQueue.add(pcb);
+            }
         }
     }
 
     private Opcode fetch(int pid, int address){
+        clock();
         addressQueue.add(new Address(pid, address));
         return dataToCPU.remove();
     }
@@ -58,8 +71,6 @@ public class CPU extends Thread{
             }
         }
 
-        System.out.println(opcode);
-
         return opcode;
     }
 
@@ -71,7 +82,7 @@ public class CPU extends Thread{
             case "mul" -> mul(opcode.getArgs());
             case "div" -> div(opcode.getArgs());
             case "out" -> out(opcode.getArgs());
-            default -> out(new Argument[]{new Argument("cpu err", AddressMode.NONE)});
+            default -> out(new Argument[]{new Argument("cpu err at process: '" + opcode.getProcess() + "'", AddressMode.NONE)});
         };
         addressQueue.add(new Address(pid, returnAddress));
         dataToMemory.add(new Opcode("", new Argument[]{result}));
@@ -96,10 +107,14 @@ public class CPU extends Thread{
     }
 
     private Argument div(Argument[] args){
+        if(args[1].getIntArgument() == 0){
+            return new Argument(0, AddressMode.IMMEDIATE);
+        }
         return new Argument(args[0].getIntArgument() / args[1].getIntArgument(), AddressMode.IMMEDIATE);
     }
 
     private Argument out(Argument[] args){
+        System.out.println(args[0].getValue());
         printQueue.add(args[0].getValue());
         return new Argument("", AddressMode.IMMEDIATE);
     }

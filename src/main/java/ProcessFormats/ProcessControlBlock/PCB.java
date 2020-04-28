@@ -8,7 +8,7 @@ import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessTime;
 public class PCB {
     private ProcessState processState = ProcessState.NEW;
     private int processID = -1;
-    private int processCounter = 0;
+    private int processCounter = 1;
     private MemoryLimits memoryLimits;
     private ProcessPriority priority;
     private int quantum;

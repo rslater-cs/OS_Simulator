@@ -20,10 +20,11 @@ public class MemoryController extends Thread{
     private SynchronisedQueue<Opcode> dataQueueToCPU;
     private SynchronisedQueue<Opcode> dataQueueToMemory;
     private SynchronisedQueue<Address> addressQueue;
+    private SynchronisedQueue printQueue;
     private boolean computerIsRunning;
 
     public MemoryController(SynchronisedQueue<Opcode> dataQueueToCPU, SynchronisedQueue<Opcode> dataQueueToMemory,
-                            SynchronisedQueue<Address> addressQueue, int memorySize,
+                            SynchronisedQueue<Address> addressQueue, SynchronisedQueue printQueue, int memorySize,
                             boolean computerIsRunning){
         this.memoryChipSize = fixSize(memorySize);
         this.memoryChip = new MemoryChip(memoryChipSize);
@@ -32,6 +33,7 @@ public class MemoryController extends Thread{
         this.addressQueue = addressQueue;
         this.computerIsRunning = computerIsRunning;
         this.openDataPoints.add(new MemoryDataPointer(0, memoryChipSize*memoryChipSize));
+        this.printQueue = printQueue;
     }
 
     private int fixSize(int size){
@@ -46,29 +48,27 @@ public class MemoryController extends Thread{
     public void run(){
         while(computerIsRunning){
             final Address relativeAddress = addressQueue.remove();
-            System.out.println(relativeAddress);
-            System.out.println(addressQueue.size());
+            print("Address request #" + relativeAddress.getAddress());
             if(relativeAddress.getAddress() == -1){
                 deleteData(relativeAddress.getPid());
             } else{
-                int absolutePage;
+                int absoluteAddress;
                 if(dataQueueToMemory.size() > 0){
                     Opcode opcode = dataQueueToMemory.remove();
-                    System.out.println(opcode);
                     if(opcode.getProcess().equals("header")){
-                        absolutePage = createProgramSpace(relativeAddress.getPid(), opcode.getArg(0).getIntArgument());
+                        absoluteAddress = createProgramSpace(relativeAddress.getPid(), opcode.getArg(0).getIntArgument());
                     }else{
-                        absolutePage = getAbsoluteAddress(relativeAddress);
+                        absoluteAddress = getAbsoluteAddress(relativeAddress);
                     }
-                    if(absolutePage == -1){
+                    if(absoluteAddress == -1){
                         printError("Memory failed to store data, due to low available storage or missing process identification");
                     }else{
                         final int[] addresses = decodeAddress(relativeAddress.getAddress());
                         memoryChip.setData(addresses[0], addresses[1], opcode);
                     }
                 } else{
-                    absolutePage = getAbsoluteAddress(relativeAddress);
-                    if(absolutePage == -1){
+                    absoluteAddress = getAbsoluteAddress(relativeAddress);
+                    if(absoluteAddress == -1){
                         printError("Memory address requested is out of bounds of program space");
                         dataQueueToCPU.add(new Opcode("memory err", null));
                     }else {
@@ -105,6 +105,7 @@ public class MemoryController extends Thread{
         }
         if(optimalSpace != null){
             MemoryDataPointer perfectSpace = splitPointer(optimalSpace, spaceSize);
+            print("Creating data pointer " + pointerSummary(perfectSpace));
             absoluteAddresses.put(pid, perfectSpace);
             return perfectSpace.getStart();
         }
@@ -119,7 +120,9 @@ public class MemoryController extends Thread{
     }
 
     private void deleteData(int pid){
-        if(!joinPointers(absoluteAddresses.get(pid))) openDataPoints.add(absoluteAddresses.get(pid));
+        MemoryDataPointer pointer = absoluteAddresses.get(pid);
+        if(!joinPointers(pointer)) openDataPoints.add(pointer);
+        print("Deleting pointer " + pointerSummary(pointer));
         absoluteAddresses.remove(pid);
     }
 
@@ -127,14 +130,24 @@ public class MemoryController extends Thread{
         boolean hasJoined = false;
         for(int x = 0; x < openDataPoints.size(); x++){
             if(openDataPoints.get(x).getStart() == pointer.getEnd()){
+                print("Joining pointers " + pointerSummary(openDataPoints.get(x)) + " and " + pointerSummary(pointer));
                 openDataPoints.get(x).setStart(pointer.getStart());
                 hasJoined = true;
             } else if(openDataPoints.get(x).getEnd() == pointer.getStart()){
+                print("Joining pointers " + pointerSummary(openDataPoints.get(x)) + " and " + pointerSummary(pointer));
                 openDataPoints.get(x).setEnd(pointer.getEnd());
                 hasJoined = true;
             }
         }
         return hasJoined;
+    }
+
+    private String pointerSummary(MemoryDataPointer pointer){
+        return pointer.getStart() + " to " + pointer.getEnd();
+    }
+
+    private void print(String message){
+        printQueue.add("[Memory Status] " + message);
     }
 
     private void printError(String errorMessage){

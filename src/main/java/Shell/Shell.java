@@ -37,7 +37,9 @@ public class Shell extends Application {
 
     private static final double OUTPUT_TEXT_HEIGHT = 500;
     private static final double OUTPUT_TEXT_WIDTH = 900;
-    private MessageBox textView = new MessageBox(OUTPUT_TEXT_HEIGHT, OUTPUT_TEXT_WIDTH, background);
+    private MessageBox textView;
+
+    private SynchronisedQueue<String> printQueue = new SynchronisedQueue<>(100);
 
     private HistoryBox history = new HistoryBox();
 
@@ -55,8 +57,8 @@ public class Shell extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        makeStage(stage);
         makeComponents();
+        makeStage(stage);
     }
 
     private void makeStage(Stage stage){
@@ -75,9 +77,9 @@ public class Shell extends Application {
     }
 
     private void makeComponents(){
-        SynchronisedQueue<Address> addressQueue = new SynchronisedQueue<>(1);
-        SynchronisedQueue<Opcode> dataToCPU = new SynchronisedQueue<>(1);
-        SynchronisedQueue<Opcode> dataToMemory = new SynchronisedQueue<>(1);
+        SynchronisedQueue<Address> addressQueue = new SynchronisedQueue<>(10);
+        SynchronisedQueue<Opcode> dataToCPU = new SynchronisedQueue<>(10);
+        SynchronisedQueue<Opcode> dataToMemory = new SynchronisedQueue<>(10);
 
         SynchronisedQueue<PCB> jobQueue = new SynchronisedQueue<>(1000);
         SynchronisedArrayList<PCB> sortedQueue = new SynchronisedArrayList<>(100);
@@ -86,12 +88,16 @@ public class Shell extends Application {
         LongTermScheduler longScheduler = new LongTermScheduler(jobQueue, sortedQueue, true, 10, 5);
         ShortTermScheduler shortScheduler = new ShortTermScheduler(sortedQueue, readyQueue, true);
 
-        SynchronisedQueue<String> printQueue = new SynchronisedQueue<>(100);
+        textView = new MessageBox(OUTPUT_TEXT_HEIGHT, OUTPUT_TEXT_WIDTH, background, printQueue, true);
 
-        CPU processor = new CPU(readyQueue, jobQueue, addressQueue, dataToCPU, dataToMemory, printQueue,  1, true);
+        CPU processor = new CPU(readyQueue, jobQueue, addressQueue, dataToCPU, dataToMemory, printQueue,  10, true);
         executer = new Executer(processor, addressQueue, dataToMemory, jobQueue);
-        MemoryController ram = new MemoryController(dataToCPU, dataToMemory, addressQueue, 35, true);
+        MemoryController ram = new MemoryController(dataToCPU, dataToMemory, addressQueue, printQueue, 35, true);
+
         ram.start();
+        shortScheduler.start();
+        longScheduler.start();
+        processor.start();
     }
 
     private void decode(KeyEvent e){
@@ -109,10 +115,10 @@ public class Shell extends Application {
             enter = true;
         } else if(code.isWhitespaceKey()){
             if(code == KeyCode.ENTER){
-               textView.addMessage(userRegion.toString());
+               printQueue.add(userRegion.toString());
                Exception exception = executer.start(userRegion.toString());
                if(exception != null){
-                   textView.addMessage(exception.toString());
+                   printQueue.add(exception.toString());
                }
                history.addHistory(userRegion);
                userRegion = new TextBox(background, COMMAND_LINE_HEIGHT);

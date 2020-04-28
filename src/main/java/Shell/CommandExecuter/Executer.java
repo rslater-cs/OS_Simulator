@@ -90,11 +90,10 @@ public class Executer {
 
         ArrayList<Opcode> opcodes = compiler.compile(file.getRest());
 
-        int returnAddress = opcodes.remove(0).getArg(0).getIntArgument();
-        System.out.println(returnAddress);
+        final int returnAddress = opcodes.remove(0).getArg(0).getIntArgument();
+        final int size = opcodes.remove(0).getArg(0).getIntArgument();
+        System.out.println(size);
         opcodes.add(0, new Opcode("header", new Argument[]{new Argument(Integer.toString(opcodes.size()+1), AddressMode.NONE)}));
-
-        final int size = opcodes.size();
 
         final int pid = pidAssigner.getPID();
 
@@ -103,9 +102,9 @@ public class Executer {
             dataQueue.add(opcodes.get(x));
         }
 
-        PCB pcb = new PCB(pid, new MemoryLimits(1, size, opcodes.size()), returnAddress, priority);
+        PCB pcb = new PCB(pid, new MemoryLimits(1, size+1, opcodes.size()), returnAddress, priority);
 
-        System.out.println(pcb);
+        jobQueue.add(pcb);
 
         return null;
     }
