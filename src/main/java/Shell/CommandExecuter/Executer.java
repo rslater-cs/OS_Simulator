@@ -92,7 +92,6 @@ public class Executer {
         ArrayList<Instruction> instructions = compiler.compile(file.getRest());
 
         final int size = instructions.remove(0).getArg(0).getIntArgument();
-        System.out.println(size);
         instructions.add(0, new Instruction(Opcode.HDR, new Operand[]{new Operand(Integer.toString(instructions.size()+1), AddressMode.IMMEDIATE)}));
 
         final int pid = pidAssigner.getPID();

@@ -2,7 +2,7 @@ package Shell;
 
 import DataTypes.SynchronisedArrayList;
 import DataTypes.SynchronisedQueue;
-import Memory.MemoryController;
+import Memory.ram.MemoryController;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.ProcessControlBlock.PCB;
@@ -11,7 +11,7 @@ import Scheduler.LongTermScheduler;
 import Scheduler.ShortTermScheduler;
 import Shell.CommandExecuter.Executer;
 import Shell.History.History;
-import Shell.Text.MessageBox;
+import Shell.Text.OutputDisplay.MessageBox;
 import Shell.Text.Validater.Validation;
 import Shell.Text.userLine.TextBox;
 import javafx.application.Application;
@@ -131,16 +131,10 @@ public class Shell extends Application {
             userRegion.deleteLast();
         }else if (code.isArrowKey()){
             if(code == KeyCode.UP){
-                userRegion = history.incHistory();
+                userRegion = history.incHistory(userRegion);
                 changeText();
             } else if(code == KeyCode.DOWN){
-                TextBox temp = history.decHistory();
-                if(temp != null) {
-                    userRegion = temp;
-                }
-                else{
-                    userRegion = new TextBox(background, COMMAND_LINE_HEIGHT);
-                }
+                userRegion = history.decHistory(userRegion);
                 changeText();
             }
         }else if(!isSpecialKey(code)){

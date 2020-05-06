@@ -2,7 +2,6 @@ package Shell.Text.OutputDisplay;
 
 
 import DataTypes.SynchronisedQueue;
-import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -11,53 +10,43 @@ import javafx.scene.layout.Background;
 import javafx.scene.paint.Color;
 
 public class MessageBox {
-    private String text = "";
-    private Label textArea = new Label();
-    private ScrollPane scrollPane = new ScrollPane();
-    private SynchronisedQueue<String> printQueue;
+    private Label text = new Label("");
+    private ScrollPane textArea = new ScrollPane();
+    private boolean computerIsRunning;
 
-    public MessageBox(double height, double width, Background background, SynchronisedQueue<String> printQueue){
+    public MessageBox(double height, double width, Background background, SynchronisedQueue<String> printQueue, boolean computerIsRunning){
         textArea.setMinHeight(height);
         textArea.setMinWidth(width);
+        text.setMinHeight(height);
+        text.setMinWidth(width);
         textArea.setBackground(background);
-        textArea.setTextFill(Color.WHITE);
-        textArea.setAlignment(Pos.BOTTOM_LEFT);
-        scrollPane.setContent(textArea);
-        scrollPane.setMinHeight(height);
-        scrollPane.setMinWidth(width);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        textArea.setText(text);
-        this.printQueue = printQueue;
+        text.setBackground(background);
+        textArea.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        textArea.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        text.setTextFill(Color.WHITE);
+        text.setAlignment(Pos.BOTTOM_LEFT);
+        textArea.setContent(text);
+        this.computerIsRunning = computerIsRunning;
 
-        Task<Void> task = new Task<Void>(){
+        Task<Void> task = new Task<>(){
+
             @Override
             protected Void call() throws Exception {
+                while(computerIsRunning) {
+                    textArea.setVvalue(1.0);
+                    final String newText =  printQueue.remove();
+                    final String message = text.getText() + newText + "\n";
+                    updateMessage(message);
+                    Thread.sleep(10);
+                }
                 return null;
             }
-
-            @Override
-            public void run() {
-                while(true){
-                    text += "\n" + printQueue.remove();
-                    updateMessage(text);
-                }
-            }
         };
-
-        textArea.textProperty().bind(task.messageProperty());
-
+        text.textProperty().bind(task.messageProperty());
         new Thread(task).start();
     }
 
-    public StringProperty getTextProperty(){
-        return textArea.textProperty();
-    }
-
-    public void addMessage(String message){
-        text += "\n" + message;
-    }
-
     public ScrollPane getRender(){
-        return scrollPane;
+        return textArea;
     }
 }

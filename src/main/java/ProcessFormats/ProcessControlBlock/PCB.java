@@ -10,7 +10,7 @@ import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessTime;
 public class PCB {
     private ProcessState processState = ProcessState.NEW;
     private int processID = -1;
-    private int processCounter = 1;
+    private int programCounter = 1;
     private MemoryLimits memoryLimits;
     private ProcessPriority priority;
     private int quantum;
@@ -27,16 +27,20 @@ public class PCB {
         return processID;
     }
 
-    public int getProcessCounter() {
+    public int getProgramCounter(){
+        return programCounter;
+    }
+
+    public int incProgramCounter() {
         processTime.setEnd();
-        if(processCounter - memoryLimits.getEnd() == 0){
+        if(programCounter - memoryLimits.getEnd() == 0){
             this.processState = ProcessState.TERMINATING;
         }
-        return processCounter++;
+        return programCounter++;
     }
 
     public void setProcessCounter(int process){
-        processCounter = process;
+        programCounter = process;
     }
 
     public MemoryLimits getMemoryLimits() {
@@ -77,12 +81,11 @@ public class PCB {
     }
 
     public void pasteRegister(Operand returnRegister){
-        System.out.println(returnRegister);
         this.returnRegister = returnRegister;
     }
 
     @Override
     public String toString(){
-        return processID + ", " + priority + ", " + processState + ", " + processCounter + ", " + quantum + ", " + memoryLimits + ", " + getExecutionTime();
+        return processID + ", " + priority + ", " + processState + ", " + programCounter + ", " + quantum + ", " + memoryLimits + ", " + getExecutionTime();
     }
 }

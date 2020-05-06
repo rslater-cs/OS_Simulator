@@ -1,4 +1,4 @@
-priority = low
+priority = high
 x = 1 + 2
 y = 3
 z = x + y

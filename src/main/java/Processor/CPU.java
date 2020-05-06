@@ -20,7 +20,8 @@ public class CPU extends Thread{
     private int freq;
     private boolean computerIsRunning;
     private int multiplier = 1;
-    private Operand returnRegister;
+    private Operand currentReturnRegister;
+    private PCB currentPCB;
 
     public CPU(SynchronisedQueue<PCB> readyQueue, SynchronisedQueue<PCB> jobQueue, SynchronisedQueue<Address> addressQueue,
                SynchronisedQueue<Instruction> dataToCPU, SynchronisedQueue<Instruction> dataToMemory, SynchronisedQueue<String> printQueue, int freq,
@@ -37,55 +38,54 @@ public class CPU extends Thread{
 
     public void run(){
         while(computerIsRunning){
-            PCB pcb = readyQueue.remove();
-            System.out.println("-------------------------");
-            System.out.println(pcb.getID());
-            returnRegister = pcb.restoreRegister();
-            for(int x = 0; x < pcb.getQuantum(); x++) {
-                int address = pcb.getProcessCounter();
-                Instruction instruction = fetch(pcb.getID(), address);
-                instruction = decode(instruction, pcb.getMemoryLimits().getEnd(), pcb.getID());
-                execute(instruction, pcb.getID(), pcb.getMemoryLimits().getEnd());
-                if (pcb.getProcessState() == ProcessState.TERMINATING) {
-                    addressQueue.add(new Address(pcb.getID(), -1));
-                    pcb.setProcessState(ProcessState.TERMINATED);
+            currentPCB = readyQueue.remove();
+            //System.out.println("-------------------------");
+            //System.out.println(currentPCB.getID());
+            currentReturnRegister = currentPCB.restoreRegister();
+            for(int x = 0; x < currentPCB.getQuantum(); x++) {
+                int address = currentPCB.incProgramCounter();
+                Instruction instruction = fetch(address);
+                //System.out.println(instruction);
+                instruction = decode(instruction);
+                execute(instruction);
+                if (currentPCB.getProcessState() == ProcessState.TERMINATING) {
+                    addressQueue.add(new Address(currentPCB.getID(), -1));
+                    currentPCB.setProcessState(ProcessState.TERMINATED);
                     break;
                 }
             }
-            if(pcb.getProcessState() != ProcessState.TERMINATED){
-                pcb.pasteRegister(returnRegister);
-                System.out.println(returnRegister);
-                jobQueue.add(pcb);
+            if(currentPCB.getProcessState() != ProcessState.TERMINATED){
+                currentPCB.pasteRegister(currentReturnRegister);
+                jobQueue.add(currentPCB);
             }
         }
     }
 
-    private Instruction fetch(int pid, int address){
+    private Instruction fetch(int address){
         clock();
-        addressQueue.add(new Address(pid, address));
+        addressQueue.add(new Address(currentPCB.getID(), address));
         return dataToCPU.remove();
     }
 
-    private Instruction decode(Instruction instruction, int instructionLength, int pid){
-        System.out.println(instruction);
+    private Instruction decode(Instruction instruction){
 
         int start = 0;
         if(instruction.getProcess().equals(Opcode.STR)) start = 1;
 
         for (int x = start; x < instruction.getArgNumber(); x++) {
             if (instruction.getArg(x).getAddressMode() == AddressMode.DIRECT) {
-                instruction.setArg(x, fetch(pid, instructionLength + instruction.getArg(x).getIntArgument()).getArg(0));
+                instruction.setArg(x, fetch(currentPCB.getMemoryLimits().getEnd() + instruction.getArg(x).getIntArgument()).getArg(0));
             }else if(instruction.getArg(x).getAddressMode() == AddressMode.REGISTER){
-                instruction.setArg(x, new Operand(returnRegister.getValue(), AddressMode.REGISTER));
+                instruction.setArg(x, new Operand(currentReturnRegister.getValue(), AddressMode.REGISTER));
             }
         }
 
         return instruction;
     }
 
-    private void execute(Instruction instruction, int pid, int instructionLength){
+    private void execute(Instruction instruction){
         Operand result = switch(instruction.getProcess()){
-            case STR -> str(pid, instructionLength, instruction);
+            case STR -> str(instruction.getArgs());
             case ADD -> add(instruction.getArgs());
             case SUB -> sub(instruction.getArgs());
             case MUL -> mul(instruction.getArgs());
@@ -93,13 +93,12 @@ public class CPU extends Thread{
             case OUT -> out(instruction.getArgs());
             default -> out(new Operand[]{new Operand("cpu err at process: '" + instruction.getProcess() + "'", AddressMode.IMMEDIATE)});
         };
-        returnRegister = result;
-        System.out.println(returnRegister);
+        currentReturnRegister = result;
     }
 
-    private Operand str(int pid, int instructionLength, Instruction instruction){
-        addressQueue.add(new Address(pid, instruction.getArg(0).getIntArgument()+instructionLength));
-        dataToMemory.add(new Instruction(Opcode.DAT, new Operand[]{instruction.getArg(1)}));
+    private Operand str(Operand[] args){
+        addressQueue.add(new Address(currentPCB.getID(), args[0].getIntArgument()+currentPCB.getMemoryLimits().getEnd()));
+        dataToMemory.add(new Instruction(Opcode.DAT, new Operand[]{args[1]}));
         return new Operand(0, AddressMode.IMMEDIATE);
     }
 
@@ -123,7 +122,7 @@ public class CPU extends Thread{
     }
 
     private Operand out(Operand[] args){
-        printQueue.add(args[0].getValue());
+        printQueue.add("[Process " + currentPCB.getID() + " output] " + args[0].getValue());
         return new Operand("", AddressMode.IMMEDIATE);
     }
 

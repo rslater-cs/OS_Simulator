@@ -1,4 +1,4 @@
-package Memory;
+package Memory.ram;
 
 
 import DataTypes.SynchronisedQueue;
@@ -49,7 +49,6 @@ public class MemoryController extends Thread{
     public void run(){
         while(computerIsRunning){
             final Address relativeAddress = addressQueue.remove();
-            //print("Address request #" + relativeAddress.getAddress());
             if(relativeAddress.getAddress() == -1){
                 deleteData(relativeAddress.getPid());
             } else{
@@ -64,7 +63,7 @@ public class MemoryController extends Thread{
                     if(absoluteAddress == -1){
                         printError("Memory failed to store data, due to low available storage or missing process identification");
                     }else{
-                        final int[] addresses = decodeAddress(relativeAddress.getAddress());
+                        final int[] addresses = decodeAddress(absoluteAddress);
                         memoryChip.setData(addresses[0], addresses[1], instruction);
                     }
                 } else{
@@ -73,7 +72,7 @@ public class MemoryController extends Thread{
                         printError("Memory address requested is out of bounds of program space");
                         dataQueueToCPU.add(new Instruction(Opcode.ERR, null));
                     }else {
-                        final int[] addresses = decodeAddress(relativeAddress.getAddress());
+                        final int[] addresses = decodeAddress(absoluteAddress);
                         dataQueueToCPU.add(memoryChip.getData(addresses[0], addresses[1]));
                     }
                 }
