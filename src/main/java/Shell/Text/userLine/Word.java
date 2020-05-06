@@ -65,7 +65,6 @@ public class Word {
     public void endWord(){
         letters.get(letters.size()-1).setFocus(false);
         setType(Validation.validateWord(getWord()));
-
     }
 
     public String getLastLetter(){

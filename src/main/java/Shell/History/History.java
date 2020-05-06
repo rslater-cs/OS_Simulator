@@ -4,7 +4,7 @@ import Shell.Text.userLine.TextBox;
 
 import java.util.ArrayList;
 
-public class HistoryBox {
+public class History {
     private ArrayList<TextBox> lines = new ArrayList<>();
     private int historyPointer = -1;
 

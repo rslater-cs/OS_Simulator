@@ -1,7 +1,7 @@
 package Shell.Text.Validater;
 
 public class Functions {
-    private static final String[] functions = {"run", "exit", "slowspeed"};
+    private static final String[] functions = {"run", "exit", "slowspeed", "showaddresses"};
 
     public static boolean isFunction(String word){
 

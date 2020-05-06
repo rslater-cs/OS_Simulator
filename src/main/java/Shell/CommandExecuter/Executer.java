@@ -3,10 +3,11 @@ package Shell.CommandExecuter;
 import DataTypes.SynchronisedQueue;
 import FileHandler.Complier.Compiler;
 import FileHandler.FileReader;
+import ProcessFormats.Data.Instruction.Opcode.Opcode;
 import ProcessFormats.Data.MemoryAddress.Address;
-import ProcessFormats.Data.Opcode.ArgumentObjects.AddressMode;
-import ProcessFormats.Data.Opcode.ArgumentObjects.Argument;
-import ProcessFormats.Data.Opcode.Opcode;
+import ProcessFormats.Data.Instruction.Operand.AddressMode;
+import ProcessFormats.Data.Instruction.Operand.Operand;
+import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.ProcessControlBlock.InternalObjects.MemoryLimits;
 import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessPriority;
 import ProcessFormats.ProcessControlBlock.PCB;
@@ -21,11 +22,11 @@ public class Executer {
     private CPU processor;
     private Compiler compiler = new Compiler();
     private SynchronisedQueue<Address> addressQueue;
-    private SynchronisedQueue<Opcode> dataQueue;
+    private SynchronisedQueue<Instruction> dataQueue;
     private SynchronisedQueue<PCB> jobQueue;
     private ProcessIDAssigner pidAssigner = new ProcessIDAssigner();
 
-    public Executer(CPU processor, SynchronisedQueue<Address> addressQueue, SynchronisedQueue<Opcode> dataQueue, SynchronisedQueue<PCB> jobQueue){
+    public Executer(CPU processor, SynchronisedQueue<Address> addressQueue, SynchronisedQueue<Instruction> dataQueue, SynchronisedQueue<PCB> jobQueue){
         this.processor = processor;
         this.addressQueue = addressQueue;
         this.dataQueue = dataQueue;
@@ -76,7 +77,7 @@ public class Executer {
             if(Validation.validateWord(command[1]) != LetterType.DIRECTORY) return wrongArgTypeException();
         }
 
-        FileReader file = null;
+        FileReader file;
 
         try {
             file = new FileReader(command[1]);
@@ -88,21 +89,21 @@ public class Executer {
 
         if(priority == null) return new Exception("Code file does not correctly specify program priority");
 
-        ArrayList<Opcode> opcodes = compiler.compile(file.getRest());
+        ArrayList<Instruction> instructions = compiler.compile(file.getRest());
 
-        final int returnAddress = opcodes.remove(0).getArg(0).getIntArgument();
-        final int size = opcodes.remove(0).getArg(0).getIntArgument();
+        final int returnAddress = instructions.remove(0).getArg(0).getIntArgument();
+        final int size = instructions.remove(0).getArg(0).getIntArgument();
         System.out.println(size);
-        opcodes.add(0, new Opcode("header", new Argument[]{new Argument(Integer.toString(opcodes.size()+1), AddressMode.NONE)}));
+        instructions.add(0, new Instruction(Opcode.HDR, new Operand[]{new Operand(Integer.toString(instructions.size()+1), AddressMode.IMMEDIATE)}));
 
         final int pid = pidAssigner.getPID();
 
-        for(int x = 0; x < opcodes.size(); x++){
+        for(int x = 0; x < instructions.size(); x++){
             addressQueue.add(new Address(pid, x));
-            dataQueue.add(opcodes.get(x));
+            dataQueue.add(instructions.get(x));
         }
 
-        PCB pcb = new PCB(pid, new MemoryLimits(1, size+1, opcodes.size()), returnAddress, priority);
+        PCB pcb = new PCB(pid, new MemoryLimits(1, size+1, instructions.size()), returnAddress, priority);
 
         jobQueue.add(pcb);
 

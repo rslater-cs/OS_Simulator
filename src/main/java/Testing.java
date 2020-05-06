@@ -1,6 +1,6 @@
 import FileHandler.Complier.Compiler;
 import FileHandler.FileReader;
-import ProcessFormats.Data.Opcode.Opcode;
+import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessPriority;
 
 import java.util.ArrayList;
@@ -14,10 +14,10 @@ public class Testing {
         FileReader fileReader = new FileReader("TestCodeOne.txt");
         fileReader.getLine();
         ProcessPriority priority = ProcessPriority.HIGH;
-        ArrayList<Opcode> opcodes = compiler.compile(fileReader.getRest());
+        ArrayList<Instruction> instructions = compiler.compile(fileReader.getRest());
 
-        for(Opcode opcode : opcodes){
-            System.out.println(opcode);
+        for(Instruction instruction : instructions){
+            System.out.println(instruction);
         }
 
         //PCB pcb = new PCB(opcodes.size(), priority);

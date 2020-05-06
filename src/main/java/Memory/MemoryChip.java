@@ -1,19 +1,19 @@
 package Memory;
 
-import ProcessFormats.Data.Opcode.Opcode;
+import ProcessFormats.Data.Instruction.Instruction;
 
 public class MemoryChip {
-    private Opcode[][] memoryArray;
+    private Instruction[][] memoryArray;
 
     public MemoryChip(int memorySize){
-        this.memoryArray = new Opcode[memorySize][memorySize];
+        this.memoryArray = new Instruction[memorySize][memorySize];
     }
 
-    public void setData(int x, int y, Opcode data){
+    public void setData(int x, int y, Instruction data){
         memoryArray[x][y] = data;
     }
 
-    public Opcode getData(int x, int y){
+    public Instruction getData(int x, int y){
         return memoryArray[x][y];
     }
 }

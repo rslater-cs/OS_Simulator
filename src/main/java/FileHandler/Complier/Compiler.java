@@ -1,29 +1,29 @@
 package FileHandler.Complier;
 
 import FileHandler.Complier.Interpreter.Interpreter;
-import ProcessFormats.Data.Opcode.ArgumentObjects.AddressMode;
-import ProcessFormats.Data.Opcode.ArgumentObjects.Argument;
-import ProcessFormats.Data.Opcode.Opcode;
+import ProcessFormats.Data.Instruction.Operand.AddressMode;
+import ProcessFormats.Data.Instruction.Operand.Operand;
+import ProcessFormats.Data.Instruction.Instruction;
 
 import java.util.ArrayList;
 
 public class Compiler {
 
-    public ArrayList<Opcode> compile(String[] code){
+    public ArrayList<Instruction> compile(String[] code){
         Variables variables = new Variables();
         final Interpreter interpreter = new Interpreter(variables);
-        ArrayList<Opcode> opcodes = new ArrayList<>();
+        ArrayList<Instruction> instructions = new ArrayList<>();
         for(int x = 0; x < code.length; x++){
-            opcodes.addAll(interpreter.interpret(code[x], x));
+            instructions.addAll(interpreter.interpret(code[x], x));
         }
 
-        opcodes.add(0, new Opcode("", new Argument[]{new Argument(opcodes.size(), AddressMode.NONE)}));
-        opcodes.add(0, new Opcode("", new Argument[]{new Argument(variables.replace("ret"), AddressMode.NONE)}));
+        instructions.add(0, new Instruction("", new Operand[]{new Operand(instructions.size(), AddressMode.NONE)}));
+        instructions.add(0, new Instruction("", new Operand[]{new Operand(variables.replace("ret"), AddressMode.NONE)}));
 
         for(int x = 0; x < variables.size(); x++){
-            opcodes.add(new Opcode("", new Argument[]{new Argument("", AddressMode.NONE)}));
+            instructions.add(new Instruction("", new Operand[]{new Operand("", AddressMode.NONE)}));
         }
 
-        return opcodes;
+        return instructions;
     }
 }

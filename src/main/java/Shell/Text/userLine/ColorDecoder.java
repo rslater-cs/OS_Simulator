@@ -11,6 +11,7 @@ public class ColorDecoder {
             case DIRECTORY -> Color.LIGHTBLUE;
             case CONNECTOR -> Color.YELLOW;
             case VALUE -> Color.BLUEVIOLET;
+            case BOOLEAN -> Color.CORAL;
             case UNKNOWN -> Color.RED;
         };
     }

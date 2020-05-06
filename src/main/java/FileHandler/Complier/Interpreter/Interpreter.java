@@ -1,9 +1,10 @@
 package FileHandler.Complier.Interpreter;
 
 import FileHandler.Complier.Variables;
-import ProcessFormats.Data.Opcode.ArgumentObjects.AddressMode;
-import ProcessFormats.Data.Opcode.ArgumentObjects.Argument;
-import ProcessFormats.Data.Opcode.Opcode;
+import ProcessFormats.Data.Instruction.Instruction;
+import ProcessFormats.Data.Instruction.Opcode.Opcode;
+import ProcessFormats.Data.Instruction.Operand.AddressMode;
+import ProcessFormats.Data.Instruction.Operand.Operand;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,22 +18,22 @@ public class Interpreter {
         this.variables = variables;
     }
 
-    public ArrayList<Opcode> interpret(String codeLine, int lineNum){
-        final Opcode ERROR_MESSAGE = new Opcode("err", new Argument[]{new Argument(Integer.toString(lineNum), AddressMode.IMMEDIATE)});
-        ArrayList<Opcode> opcodes = new ArrayList<>();
+    public ArrayList<Instruction> interpret(String codeLine, int lineNum){
+        final Instruction ERROR_MESSAGE = new Instruction(Opcode.ERR, new Operand[]{new Operand(Integer.toString(lineNum), AddressMode.IMMEDIATE)});
+        ArrayList<Instruction> instructions = new ArrayList<>();
         Stack<String> code = toStack(codeLine);
         while(code.size() > 1){
             Pack pack = new Pack(code, variables);
             if(pack.validate()){
-                opcodes.add(pack.toOpcode());
+                instructions.add(pack.toOpcode());
                 if(code.size() > 0){
                     code.add(RETURN_ADDR);
                 }
             } else{
-                opcodes.add(ERROR_MESSAGE);
+                instructions.add(ERROR_MESSAGE);
             }
         }
-        return opcodes;
+        return instructions;
     }
 
     private Stack<String> toStack(String codeLine){

@@ -4,13 +4,13 @@ import DataTypes.SynchronisedArrayList;
 import DataTypes.SynchronisedQueue;
 import Memory.MemoryController;
 import ProcessFormats.Data.MemoryAddress.Address;
-import ProcessFormats.Data.Opcode.Opcode;
+import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.ProcessControlBlock.PCB;
 import Processor.CPU;
 import Scheduler.LongTermScheduler;
 import Scheduler.ShortTermScheduler;
 import Shell.CommandExecuter.Executer;
-import Shell.History.HistoryBox;
+import Shell.History.History;
 import Shell.Text.MessageBox;
 import Shell.Text.Validater.Validation;
 import Shell.Text.userLine.TextBox;
@@ -41,7 +41,7 @@ public class Shell extends Application {
 
     private SynchronisedQueue<String> printQueue = new SynchronisedQueue<>(100);
 
-    private HistoryBox history = new HistoryBox();
+    private History history = new History();
 
     GridPane grid = new GridPane();
 
@@ -78,8 +78,8 @@ public class Shell extends Application {
 
     private void makeComponents(){
         SynchronisedQueue<Address> addressQueue = new SynchronisedQueue<>(10);
-        SynchronisedQueue<Opcode> dataToCPU = new SynchronisedQueue<>(10);
-        SynchronisedQueue<Opcode> dataToMemory = new SynchronisedQueue<>(10);
+        SynchronisedQueue<Instruction> dataToCPU = new SynchronisedQueue<>(10);
+        SynchronisedQueue<Instruction> dataToMemory = new SynchronisedQueue<>(10);
 
         SynchronisedQueue<PCB> jobQueue = new SynchronisedQueue<>(1000);
         SynchronisedArrayList<PCB> sortedQueue = new SynchronisedArrayList<>(100);

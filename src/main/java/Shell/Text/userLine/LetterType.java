@@ -6,5 +6,6 @@ public enum LetterType {
     DIRECTORY,
     CONNECTOR,
     VALUE,
+    BOOLEAN,
     UNKNOWN
 }

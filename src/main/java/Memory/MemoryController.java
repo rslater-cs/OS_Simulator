@@ -3,10 +3,11 @@ package Memory;
 
 import DataTypes.SynchronisedQueue;
 import Memory.Pointers.MemoryDataPointer;
+import ProcessFormats.Data.Instruction.Opcode.Opcode;
 import ProcessFormats.Data.MemoryAddress.Address;
-import ProcessFormats.Data.Opcode.ArgumentObjects.AddressMode;
-import ProcessFormats.Data.Opcode.ArgumentObjects.Argument;
-import ProcessFormats.Data.Opcode.Opcode;
+import ProcessFormats.Data.Instruction.Operand.AddressMode;
+import ProcessFormats.Data.Instruction.Operand.Operand;
+import ProcessFormats.Data.Instruction.Instruction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,13 +18,13 @@ public class MemoryController extends Thread{
     private int memoryChipSize;
     private Map<Integer, MemoryDataPointer> absoluteAddresses = new HashMap<>();
     private ArrayList<MemoryDataPointer> openDataPoints = new ArrayList<>();
-    private SynchronisedQueue<Opcode> dataQueueToCPU;
-    private SynchronisedQueue<Opcode> dataQueueToMemory;
+    private SynchronisedQueue<Instruction> dataQueueToCPU;
+    private SynchronisedQueue<Instruction> dataQueueToMemory;
     private SynchronisedQueue<Address> addressQueue;
     private SynchronisedQueue printQueue;
     private boolean computerIsRunning;
 
-    public MemoryController(SynchronisedQueue<Opcode> dataQueueToCPU, SynchronisedQueue<Opcode> dataQueueToMemory,
+    public MemoryController(SynchronisedQueue<Instruction> dataQueueToCPU, SynchronisedQueue<Instruction> dataQueueToMemory,
                             SynchronisedQueue<Address> addressQueue, SynchronisedQueue printQueue, int memorySize,
                             boolean computerIsRunning){
         this.memoryChipSize = fixSize(memorySize);
@@ -48,15 +49,15 @@ public class MemoryController extends Thread{
     public void run(){
         while(computerIsRunning){
             final Address relativeAddress = addressQueue.remove();
-            print("Address request #" + relativeAddress.getAddress());
+            //print("Address request #" + relativeAddress.getAddress());
             if(relativeAddress.getAddress() == -1){
                 deleteData(relativeAddress.getPid());
             } else{
                 int absoluteAddress;
                 if(dataQueueToMemory.size() > 0){
-                    Opcode opcode = dataQueueToMemory.remove();
-                    if(opcode.getProcess().equals("header")){
-                        absoluteAddress = createProgramSpace(relativeAddress.getPid(), opcode.getArg(0).getIntArgument());
+                    Instruction instruction = dataQueueToMemory.remove();
+                    if(instruction.getProcess() == Opcode.HDR){
+                        absoluteAddress = createProgramSpace(relativeAddress.getPid(), instruction.getArg(0).getIntArgument());
                     }else{
                         absoluteAddress = getAbsoluteAddress(relativeAddress);
                     }
@@ -64,13 +65,13 @@ public class MemoryController extends Thread{
                         printError("Memory failed to store data, due to low available storage or missing process identification");
                     }else{
                         final int[] addresses = decodeAddress(relativeAddress.getAddress());
-                        memoryChip.setData(addresses[0], addresses[1], opcode);
+                        memoryChip.setData(addresses[0], addresses[1], instruction);
                     }
                 } else{
                     absoluteAddress = getAbsoluteAddress(relativeAddress);
                     if(absoluteAddress == -1){
                         printError("Memory address requested is out of bounds of program space");
-                        dataQueueToCPU.add(new Opcode("memory err", null));
+                        dataQueueToCPU.add(new Instruction(Opcode.ERR, null));
                     }else {
                         final int[] addresses = decodeAddress(relativeAddress.getAddress());
                         dataQueueToCPU.add(memoryChip.getData(addresses[0], addresses[1]));
@@ -151,7 +152,7 @@ public class MemoryController extends Thread{
     }
 
     private void printError(String errorMessage){
-        dataQueueToCPU.add(new Opcode("err", new Argument[]{new Argument(new RuntimeException(errorMessage).toString(), AddressMode.NONE)}));
+        dataQueueToCPU.add(new Instruction(Opcode.ERR, new Operand[]{new Operand(new RuntimeException(errorMessage).toString(), AddressMode.NONE)}));
     }
 
     @Override
