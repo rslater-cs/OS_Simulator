@@ -1,10 +1,10 @@
 package Memory.Pointers;
 
-public class MemoryDataPointer {
+public class PagePointer {
     private int start;
     private int end;
 
-    public MemoryDataPointer(int start, int end){
+    public PagePointer(int start, int end){
         this.start = start;
         this.end = end;
     }
