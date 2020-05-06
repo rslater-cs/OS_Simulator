@@ -92,7 +92,7 @@ public class Shell extends Application {
 
         CPU processor = new CPU(readyQueue, jobQueue, addressQueue, dataToCPU, dataToMemory, printQueue,  10, true);
         executer = new Executer(processor, addressQueue, dataToMemory, jobQueue);
-        MemoryController ram = new MemoryController(dataToCPU, dataToMemory, addressQueue, printQueue, 35, true);
+        MemoryController ram = new MemoryController(dataToCPU, dataToMemory, addressQueue, printQueue, 144, true);
 
         ram.start();
         shortScheduler.start();

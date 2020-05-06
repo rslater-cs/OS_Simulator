@@ -159,6 +159,9 @@ public class MemoryController extends Thread{
     public String toString() {
         StringBuffer memorySummary = new StringBuffer();
 
+        memorySummary.append("chip size: ");
+        memorySummary.append(memoryChipSize);
+
         for(int y = 0; y < memoryChipSize; y++){
             for(int x = 0; x < memoryChipSize; x++){
                 memorySummary.append("address: ");

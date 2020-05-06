@@ -91,7 +91,6 @@ public class Executer {
 
         ArrayList<Instruction> instructions = compiler.compile(file.getRest());
 
-        final int returnAddress = instructions.remove(0).getArg(0).getIntArgument();
         final int size = instructions.remove(0).getArg(0).getIntArgument();
         System.out.println(size);
         instructions.add(0, new Instruction(Opcode.HDR, new Operand[]{new Operand(Integer.toString(instructions.size()+1), AddressMode.IMMEDIATE)}));
@@ -103,7 +102,7 @@ public class Executer {
             dataQueue.add(instructions.get(x));
         }
 
-        PCB pcb = new PCB(pid, new MemoryLimits(1, size+1, instructions.size()), returnAddress, priority);
+        PCB pcb = new PCB(pid, new MemoryLimits(1, size, instructions.size()), priority);
 
         jobQueue.add(pcb);
 

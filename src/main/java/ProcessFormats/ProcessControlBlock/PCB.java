@@ -1,5 +1,7 @@
 package ProcessFormats.ProcessControlBlock;
 
+import ProcessFormats.Data.Instruction.Operand.AddressMode;
+import ProcessFormats.Data.Instruction.Operand.Operand;
 import ProcessFormats.ProcessControlBlock.InternalObjects.MemoryLimits;
 import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessPriority;
 import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessState;
@@ -13,13 +15,12 @@ public class PCB {
     private ProcessPriority priority;
     private int quantum;
     private ProcessTime processTime = new ProcessTime();
-    int returnAddress;
+    private Operand returnRegister = new Operand(0, AddressMode.REGISTER);
 
-    public PCB(int pid, MemoryLimits memoryLimits, int returnAddress, ProcessPriority priority){
+    public PCB(int pid, MemoryLimits memoryLimits, ProcessPriority priority){
         this.processID = pid;
         this.memoryLimits = memoryLimits;
         this.priority = priority;
-        this.returnAddress = returnAddress;
     }
 
     public int getID(){
@@ -28,7 +29,7 @@ public class PCB {
 
     public int getProcessCounter() {
         processTime.setEnd();
-        if(processCounter+1 - memoryLimits.getEnd() == 0){
+        if(processCounter - memoryLimits.getEnd() == 0){
             this.processState = ProcessState.TERMINATING;
         }
         return processCounter++;
@@ -71,8 +72,13 @@ public class PCB {
         return processTime.totalTime();
     }
 
-    public int getReturnAddress(){
-        return returnAddress;
+    public Operand restoreRegister(){
+        return returnRegister;
+    }
+
+    public void pasteRegister(Operand returnRegister){
+        System.out.println(returnRegister);
+        this.returnRegister = returnRegister;
     }
 
     @Override

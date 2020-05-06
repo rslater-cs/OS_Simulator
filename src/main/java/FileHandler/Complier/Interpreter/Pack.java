@@ -58,6 +58,7 @@ public class Pack {
     }
 
     private AddressMode getAddressMode(String name){
+        if(name.equals("ret")) return AddressMode.REGISTER;
         for(int x = 0; x < REGEX.length; x++){
             if(Pattern.matches(REGEX[x], name)){
                 return ADDRESS_MODE[x];

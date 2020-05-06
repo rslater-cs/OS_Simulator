@@ -1,6 +1,7 @@
 package FileHandler.Complier;
 
 import FileHandler.Complier.Interpreter.Interpreter;
+import ProcessFormats.Data.Instruction.Opcode.Opcode;
 import ProcessFormats.Data.Instruction.Operand.AddressMode;
 import ProcessFormats.Data.Instruction.Operand.Operand;
 import ProcessFormats.Data.Instruction.Instruction;
@@ -17,11 +18,10 @@ public class Compiler {
             instructions.addAll(interpreter.interpret(code[x], x));
         }
 
-        instructions.add(0, new Instruction("", new Operand[]{new Operand(instructions.size(), AddressMode.NONE)}));
-        instructions.add(0, new Instruction("", new Operand[]{new Operand(variables.replace("ret"), AddressMode.NONE)}));
+        instructions.add(0, new Instruction(Opcode.DAT, new Operand[]{new Operand(instructions.size(), AddressMode.NONE)}));
 
         for(int x = 0; x < variables.size(); x++){
-            instructions.add(new Instruction("", new Operand[]{new Operand("", AddressMode.NONE)}));
+            instructions.add(new Instruction(Opcode.DAT, new Operand[]{new Operand("", AddressMode.NONE)}));
         }
 
         return instructions;
