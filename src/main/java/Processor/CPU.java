@@ -13,24 +13,43 @@ import ProcessFormats.ProcessControlBlock.PCB;
 public class CPU extends Thread{
     private SynchronisedQueue<PCB> readyQueue;
     private SynchronisedQueue<PCB> jobQueue;
-    private SynchronisedQueue<Address> addressQueue;
-    private SynchronisedQueue<Instruction> dataToCPU;
-    private SynchronisedQueue<Instruction> dataToMemory;
+
+    private SynchronisedQueue<Address> addressFromCPUToMemory;
+    private SynchronisedQueue<Address> addressFromCPUToCache;
+
+    private SynchronisedQueue<Instruction> dataFromMemoryToCPU;
+    private SynchronisedQueue<Instruction> dataFromCPUToMemory;
+    private SynchronisedQueue<Instruction> dataFromCacheToCPU;
+
     private SynchronisedQueue<String> printQueue;
+
     private int freq;
     private boolean computerIsRunning = true;
     private int multiplier = 1;
     private Operand currentReturnRegister;
     private PCB currentPCB;
 
-    public CPU(SynchronisedQueue<PCB> readyQueue, SynchronisedQueue<PCB> jobQueue, SynchronisedQueue<Address> addressQueue,
-               SynchronisedQueue<Instruction> dataToCPU, SynchronisedQueue<Instruction> dataToMemory, SynchronisedQueue<String> printQueue, int freq){
+    public CPU(SynchronisedQueue<PCB> readyQueue,
+               SynchronisedQueue<PCB> jobQueue,
+               SynchronisedQueue<Address> addressFromCPUToMemory,
+               SynchronisedQueue<Address> addressFromCPUToCache,
+               SynchronisedQueue<Instruction> dataFromMemoryToCPU,
+               SynchronisedQueue<Instruction> dataFromCPUToMemory,
+               SynchronisedQueue<Instruction> dataFromCacheToCPU,
+               SynchronisedQueue<String> printQueue,
+               int freq){
         this.freq = freq;
+
         this.readyQueue = readyQueue;
         this.jobQueue = jobQueue;
-        this.addressQueue = addressQueue;
-        this.dataToCPU = dataToCPU;
-        this.dataToMemory = dataToMemory;
+
+        this.addressFromCPUToMemory = addressFromCPUToMemory;
+        this.addressFromCPUToCache = addressFromCPUToCache;
+
+        this.dataFromMemoryToCPU = dataFromMemoryToCPU;
+        this.dataFromCPUToMemory = dataFromCPUToMemory;
+        this.dataFromCacheToCPU = dataFromCacheToCPU;
+
         this.printQueue = printQueue;
     }
 
@@ -42,12 +61,12 @@ public class CPU extends Thread{
             currentReturnRegister = currentPCB.restoreRegister();
             for(int x = 0; x < currentPCB.getQuantum(); x++) {
                 int address = currentPCB.incProgramCounter();
-                Instruction instruction = fetch(address);
+                Instruction instruction = instructionFetch(address);
                 //System.out.println(instruction);
                 instruction = decode(instruction);
                 execute(instruction);
                 if (currentPCB.getProcessState() == ProcessState.TERMINATING) {
-                    addressQueue.add(new Address(currentPCB.getID(), -1));
+                    addressFromCPUToMemory.add(new Address(currentPCB.getID(), -1));
                     currentPCB.setProcessState(ProcessState.TERMINATED);
                     break;
                 }
@@ -59,10 +78,15 @@ public class CPU extends Thread{
         }
     }
 
-    private Instruction fetch(int address){
+    private Instruction instructionFetch(int address){
+        addressFromCPUToCache.add(new Address(currentPCB.getID(), address));
+        return dataFromCacheToCPU.remove();
+    }
+
+    private Instruction dataFetch(int address){
         clock();
-        addressQueue.add(new Address(currentPCB.getID(), address));
-        return dataToCPU.remove();
+        addressFromCPUToMemory.add(new Address(currentPCB.getID(), address));
+        return dataFromMemoryToCPU.remove();
     }
 
     private Instruction decode(Instruction instruction){
@@ -72,7 +96,7 @@ public class CPU extends Thread{
 
         for (int x = start; x < instruction.getArgNumber(); x++) {
             if (instruction.getArg(x).getAddressMode() == AddressMode.DIRECT) {
-                instruction.setArg(x, fetch(currentPCB.getMemoryLimits().getEnd() + instruction.getArg(x).getIntArgument()).getArg(0));
+                instruction.setArg(x, dataFetch(currentPCB.getMemoryLimits().getEnd() + instruction.getArg(x).getIntArgument()).getArg(0));
             }else if(instruction.getArg(x).getAddressMode() == AddressMode.REGISTER){
                 instruction.setArg(x, new Operand(currentReturnRegister.getValue(), AddressMode.REGISTER));
             }
@@ -95,8 +119,8 @@ public class CPU extends Thread{
     }
 
     private Operand str(Operand[] args){
-        addressQueue.add(new Address(currentPCB.getID(), args[0].getIntArgument()+currentPCB.getMemoryLimits().getEnd()));
-        dataToMemory.add(new Instruction(Opcode.DAT, new Operand[]{args[1]}));
+        addressFromCPUToMemory.add(new Address(currentPCB.getID(), args[0].getIntArgument()+currentPCB.getMemoryLimits().getEnd()));
+        dataFromCPUToMemory.add(new Instruction(Opcode.DAT, new Operand[]{args[1]}));
         return new Operand(0, AddressMode.IMMEDIATE);
     }
 

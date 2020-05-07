@@ -7,11 +7,16 @@ import ProcessFormats.ProcessControlBlock.PCB;
 public class ShortTermScheduler extends Thread{
     private SynchronisedArrayList<PCB> sortedJobs;
     private SynchronisedQueue<PCB> readyQueue;
+    private SynchronisedQueue<PCB> jobsToBeRun;
+
     private boolean computerIsRunning = true;
 
-    public ShortTermScheduler(SynchronisedArrayList<PCB> sortedJobs, SynchronisedQueue<PCB> readyQueue){
+    public ShortTermScheduler(SynchronisedArrayList<PCB> sortedJobs,
+                              SynchronisedQueue<PCB> readyQueue,
+                              SynchronisedQueue<PCB> jobsToBeRun){
         this.sortedJobs = sortedJobs;
         this.readyQueue = readyQueue;
+        this.jobsToBeRun = jobsToBeRun;
     }
 
     public void run(){
@@ -19,6 +24,7 @@ public class ShortTermScheduler extends Thread{
             final int leastExecuted = getLeastExecuted();
             if(leastExecuted > -1) {
                 PCB pcb = sortedJobs.remove(leastExecuted);
+                jobsToBeRun.add(pcb);
                 readyQueue.add(pcb);
             }
         }

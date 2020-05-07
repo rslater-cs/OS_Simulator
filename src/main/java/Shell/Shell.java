@@ -2,6 +2,7 @@ package Shell;
 
 import DataTypes.SynchronisedArrayList;
 import DataTypes.SynchronisedQueue;
+import Memory.cache.Cache;
 import Memory.ram.MemoryController;
 import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.Data.MemoryAddress.Address;
@@ -92,16 +93,22 @@ public class Shell extends Application {
         SynchronisedQueue<PCB> jobsToBeRun = new SynchronisedQueue<>(10);
 
         LongTermScheduler longScheduler = new LongTermScheduler(jobQueue, sortedQueue, 10, 5);
-        ShortTermScheduler shortScheduler = new ShortTermScheduler(sortedQueue, readyQueue);
+        ShortTermScheduler shortScheduler = new ShortTermScheduler(sortedQueue, readyQueue, jobsToBeRun);
 
         textView = new MessageBox(OUTPUT_TEXT_HEIGHT, OUTPUT_TEXT_WIDTH, background, printQueue);
 
+        Cache cache = new Cache(dataFromCacheToCPU, dataFromMemoryToCache, addressFromCacheToMemory,
+                addressFromCPUToCache, jobsToBeRun, 32);
 
-        CPU processor = new CPU(readyQueue, jobQueue, addressFromCPUToMemory, dataFromMemoryToCPU, dataFromCPUToMemory, printQueue,  10);
-        executer = new Executer(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue);
         MemoryController ram = new MemoryController(dataFromMemoryToCPU, dataFromCPUToMemory, dataFromMemoryToCache,
                 addressFromCacheToMemory, addressFromCPUToMemory, printQueue, 5, 40);
 
+        CPU processor = new CPU(readyQueue, jobQueue, addressFromCPUToMemory, addressFromCPUToCache,
+                dataFromMemoryToCPU, dataFromCPUToMemory, dataFromCacheToCPU, printQueue,  10);
+
+        executer = new Executer(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue);
+
+        cache.start();
         ram.start();
         shortScheduler.start();
         longScheduler.start();

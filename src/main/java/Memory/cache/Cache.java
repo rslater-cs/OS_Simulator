@@ -13,57 +13,71 @@ public class Cache extends Thread{
 
     private SynchronisedQueue<PCB> processesToBeRun;
 
-    private SynchronisedQueue<Instruction> dataToCPU;
-    private SynchronisedQueue<Instruction> dataFromMemory;
+    private SynchronisedQueue<Instruction> dataFromCacheToCPU;
+    private SynchronisedQueue<Instruction> dataFromMemoryToCache;
 
-    private SynchronisedQueue<Address> addressToMemory;
-    private SynchronisedQueue<Address> addressFromCPU;
+    private SynchronisedQueue<Address> addressFromCacheToMemory;
+    private SynchronisedQueue<Address> addressFromCPUToCache;
 
-    public Cache(SynchronisedQueue<Instruction> dataToCPU, SynchronisedQueue<Instruction> dataFromMemory,
-                 SynchronisedQueue<PCB> processesToBeRun, int cacheSize){
+    private boolean computerIsRunning = true;
+
+    public Cache(SynchronisedQueue<Instruction> dataFromCacheToCPU,
+                 SynchronisedQueue<Instruction> dataFromMemoryToCache,
+                 SynchronisedQueue<Address> addressFromCacheToMemory,
+                 SynchronisedQueue<Address> addressFromCPUToCache,
+                 SynchronisedQueue<PCB> processesToBeRun,
+                 int cacheSize){
         this.instructions = new Instruction[cacheSize];
         this.addresses = new Address[cacheSize];
+
         this.pointer = new FreeCellPointer(cacheSize);
-        this.dataFromMemory = dataFromMemory;
-        this.dataToCPU = dataToCPU;
+
+        this.dataFromMemoryToCache = dataFromMemoryToCache;
+        this.dataFromCacheToCPU = dataFromCacheToCPU;
+
+        this.addressFromCacheToMemory = addressFromCacheToMemory;
+        this.addressFromCPUToCache = addressFromCPUToCache;
+
         this.processesToBeRun = processesToBeRun;
     }
 
     public void run(){
-        while(true){
+        while(computerIsRunning){
             if(processesToBeRun.size() > 0 && pointer.isFreeSpace()){
                 PCB pcb = processesToBeRun.remove();
+                System.out.println(pcb);
                 fetchData(pcb.getProgramCounter(), pcb.getQuantum(), pcb.getID());
             }
-            if(addressFromCPU.size() > 0){
-                Address address = addressFromCPU.remove();
+            if(addressFromCPUToCache.size() > 0){
+                Address address = addressFromCPUToCache.remove();
+                System.out.println(address);
                 int index;
                 if((index = addressExists(address)) != -1){
-                    dataToCPU.add(instructions[index]);
+                    dataFromCacheToCPU.add(instructions[index]);
                     pointer.addFreePoint(index);
                 }else{
-                    dataToCPU.add(memoryFetch(address));
+                    dataFromCacheToCPU.add(memoryFetch(address));
                 }
             }
         }
     }
 
+    public void endThread(){
+        computerIsRunning = false;
+    }
+
     private void fetchData(int start, int length, int pid){
         for(int x = 0; x < length; x++){
             final int index = pointer.nextFreeSpace();
+            System.out.println(index);
             addresses[index] = new Address(pid, x+start);
             instructions[index] = memoryFetch(addresses[index]);
         }
     }
 
     private Instruction memoryFetch(Address address){
-        addressToMemory.add(address);
-        try {
-            Thread.sleep(1);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return dataFromMemory.remove();
+        addressFromCacheToMemory.add(address);
+        return dataFromMemoryToCache.remove();
     }
 
     private int addressExists(Address address){
