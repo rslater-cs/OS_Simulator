@@ -16,4 +16,10 @@ public class Address {
     public int getAddress() {
         return address;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        Address otherAddress = (Address)obj;
+        return (otherAddress.getPid() == getPid() && otherAddress.getAddress() == getAddress());
+    }
 }
