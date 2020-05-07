@@ -6,6 +6,8 @@ import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.ProcessControlBlock.PCB;
 
 public class Cache extends Thread{
+    private FreeCellPointer pointer;
+
     private Instruction[] instructions;
     private Address[] addresses;
 
@@ -16,12 +18,12 @@ public class Cache extends Thread{
 
     private SynchronisedQueue<Address> addressToMemory;
     private SynchronisedQueue<Address> addressFromCPU;
-    private int pointer = 0;
 
     public Cache(SynchronisedQueue<Instruction> dataToCPU, SynchronisedQueue<Instruction> dataFromMemory,
                  SynchronisedQueue<PCB> processesToBeRun, int cacheSize){
         this.instructions = new Instruction[cacheSize];
         this.addresses = new Address[cacheSize];
+        this.pointer = new FreeCellPointer(cacheSize);
         this.dataFromMemory = dataFromMemory;
         this.dataToCPU = dataToCPU;
         this.processesToBeRun = processesToBeRun;
@@ -29,7 +31,7 @@ public class Cache extends Thread{
 
     public void run(){
         while(true){
-            if(processesToBeRun.size() > 0 && pointer < instructions.length+1){
+            if(processesToBeRun.size() > 0 && pointer.isFreeSpace()){
                 PCB pcb = processesToBeRun.remove();
                 fetchData(pcb.getProgramCounter(), pcb.getQuantum(), pcb.getID());
             }
@@ -38,6 +40,7 @@ public class Cache extends Thread{
                 int index;
                 if((index = addressExists(address)) != -1){
                     dataToCPU.add(instructions[index]);
+                    pointer.addFreePoint(index);
                 }else{
                     dataToCPU.add(memoryFetch(address));
                 }
@@ -47,8 +50,9 @@ public class Cache extends Thread{
 
     private void fetchData(int start, int length, int pid){
         for(int x = 0; x < length; x++){
-            addresses[pointer] = new Address(pid, x+start);
-            instructions[pointer++] = memoryFetch(addresses[pointer]);
+            final int index = pointer.nextFreeSpace();
+            addresses[index] = new Address(pid, x+start);
+            instructions[index] = memoryFetch(addresses[index]);
         }
     }
 

@@ -15,59 +15,86 @@ import java.util.Map;
 
 public class MemoryController extends Thread{
     private MemoryChip memoryChip;
+
     private int pageSize;
     private int amountOfPages;
     private Map<Integer, PagePointer> absoluteAddresses = new HashMap<>();
     private ArrayList<PagePointer> openDataPoints = new ArrayList<>();
-    private SynchronisedQueue<Instruction> dataQueueToCPU;
-    private SynchronisedQueue<Instruction> dataQueueToMemory;
-    private SynchronisedQueue<Address> addressQueue;
-    private SynchronisedQueue printQueue;
-    private boolean computerIsRunning;
 
-    public MemoryController(SynchronisedQueue<Instruction> dataQueueToCPU, SynchronisedQueue<Instruction> dataQueueToMemory,
-                            SynchronisedQueue<Address> addressQueue, SynchronisedQueue printQueue, int amountOfPages,
-                            int pageSize, boolean computerIsRunning){
+    private SynchronisedQueue<Instruction> dataFromMemoryToCPU;
+    private SynchronisedQueue<Instruction> dataFromCPUToMemory;
+    private SynchronisedQueue<Instruction> dataFromMemoryToCache;
+
+    private SynchronisedQueue<Address> addressFromCacheToMemory;
+    private SynchronisedQueue<Address> addressFromCPUToMemory;
+
+    private SynchronisedQueue<String> printQueue;
+
+    private boolean computerIsRunning = true;
+
+    public MemoryController(SynchronisedQueue<Instruction> dataFromMemoryToCPU,
+                            SynchronisedQueue<Instruction> dataFromCPUToMemory,
+                            SynchronisedQueue<Instruction> dataFromMemoryToCache,
+                            SynchronisedQueue<Address> addressFromCacheToMemory,
+                            SynchronisedQueue<Address> addressFromCPUToMemory,
+                            SynchronisedQueue<String> printQueue,
+                            int amountOfPages, int pageSize){
         this.amountOfPages = amountOfPages;
         this.pageSize = pageSize;
         this.memoryChip = new MemoryChip(amountOfPages, pageSize);
-        this.dataQueueToCPU = dataQueueToCPU;
-        this.dataQueueToMemory = dataQueueToMemory;
-        this.addressQueue = addressQueue;
-        this.computerIsRunning = computerIsRunning;
-        this.openDataPoints.add(new PagePointer(0, amountOfPages));
+
+        this.dataFromMemoryToCPU = dataFromMemoryToCPU;
+        this.dataFromCPUToMemory = dataFromCPUToMemory;
+        this.dataFromMemoryToCache = dataFromMemoryToCache;
+
+        this.addressFromCPUToMemory = addressFromCPUToMemory;
+        this.addressFromCacheToMemory = addressFromCacheToMemory;
+
         this.printQueue = printQueue;
+
+        this.openDataPoints.add(new PagePointer(0, amountOfPages));
     }
 
     public void run(){
         while(computerIsRunning){
-            final Address relativeAddress = addressQueue.remove();
-            if(relativeAddress.getAddress() == -1){
-                deleteData(relativeAddress.getPid());
-            } else{
-                int[] absoluteAddress;
-                if(dataQueueToMemory.size() > 0){
-                    Instruction instruction = dataQueueToMemory.remove();
-                    if(instruction.getProcess() == Opcode.HDR){
-                        absoluteAddress = createProgramSpace(relativeAddress.getPid(), instruction.getArg(0).getIntArgument());
-                    }else{
+            Address relativeAddress = null;
+            SynchronisedQueue<Instruction> returnQueue;
+            if(addressFromCacheToMemory.size() > 0){
+                relativeAddress = addressFromCacheToMemory.remove();
+                returnQueue = dataFromMemoryToCache;
+            }else if(addressFromCPUToMemory.size() > 0){
+                relativeAddress = addressFromCPUToMemory.remove();
+                returnQueue = dataFromMemoryToCPU;
+            }
+            //final Address relativeAddress = addressFromCPUToMemory.remove();
+            if(relativeAddress != null) {
+                if (relativeAddress.getAddress() == -1) {
+                    deleteData(relativeAddress.getPid());
+                } else {
+                    int[] absoluteAddress;
+                    if (dataFromCPUToMemory.size() > 0) {
+                        Instruction instruction = dataFromCPUToMemory.remove();
+                        if (instruction.getProcess() == Opcode.HDR) {
+                            absoluteAddress = createProgramSpace(relativeAddress.getPid(), instruction.getArg(0).getIntArgument());
+                        } else {
+                            absoluteAddress = getAbsoluteAddress(relativeAddress);
+                        }
+                        if (absoluteAddress[0] == -1) {
+                            printError("Memory failed to store data, due to low available storage or missing process identification");
+                        } else {
+                            Instruction[] page = memoryChip.getData(absoluteAddress[0]);
+                            page[absoluteAddress[1]] = instruction;
+                            memoryChip.setData(absoluteAddress[0], page);
+                        }
+                    } else {
                         absoluteAddress = getAbsoluteAddress(relativeAddress);
-                    }
-                    if(absoluteAddress[0] == -1){
-                        printError("Memory failed to store data, due to low available storage or missing process identification");
-                    }else{
-                        Instruction[] page = memoryChip.getData(absoluteAddress[0]);
-                        page[absoluteAddress[1]] = instruction;
-                        memoryChip.setData(absoluteAddress[0], page);
-                    }
-                } else{
-                    absoluteAddress = getAbsoluteAddress(relativeAddress);
-                    if(absoluteAddress[0] == -1){
-                        printError("Memory address requested is out of bounds of program space");
-                        dataQueueToCPU.add(new Instruction(Opcode.ERR, null));
-                    }else {
-                        Instruction[] page = memoryChip.getData(absoluteAddress[0]);
-                        dataQueueToCPU.add(page[absoluteAddress[1]]);
+                        if (absoluteAddress[0] == -1) {
+                            printError("Memory address requested is out of bounds of program space");
+                            dataFromMemoryToCPU.add(new Instruction(Opcode.ERR, null));
+                        } else {
+                            Instruction[] page = memoryChip.getData(absoluteAddress[0]);
+                            dataFromMemoryToCPU.add(page[absoluteAddress[1]]);
+                        }
                     }
                 }
             }
@@ -76,20 +103,20 @@ public class MemoryController extends Thread{
 
     public int decodeAddress(int address){
         int pageNum = address / pageSize;
-        System.out.println(pageNum);
-        return ++pageNum;
+        return pageNum;
     }
 
     private int[] getAbsoluteAddress(Address relativeAddress){
         if(absoluteAddresses.containsKey(relativeAddress.getPid())){
             int pageNeeded = decodeAddress(relativeAddress.getAddress());
+            pageNeeded += absoluteAddresses.get(relativeAddress.getPid()).getStart();
             return new int[]{pageNeeded, relativeAddress.getAddress()%pageSize};
         }
         return new int[]{-1};
     }
 
     private int[] createProgramSpace(int pid, int spaceSize) {
-        int pagesNeeded = decodeAddress(spaceSize);
+        int pagesNeeded = decodeAddress(spaceSize)+1;
         int spaceDifference = Integer.MAX_VALUE;
         PagePointer optimalSpace = null;
         for (PagePointer pointer : openDataPoints) {
@@ -147,7 +174,11 @@ public class MemoryController extends Thread{
     }
 
     private void printError(String errorMessage){
-        dataQueueToCPU.add(new Instruction(Opcode.ERR, new Operand[]{new Operand(new RuntimeException(errorMessage).toString(), AddressMode.NONE)}));
+        dataFromMemoryToCPU.add(new Instruction(Opcode.ERR, new Operand[]{new Operand(new RuntimeException(errorMessage).toString(), AddressMode.NONE)}));
+    }
+
+    private void endThread(){
+        computerIsRunning = false;
     }
 
     @Override

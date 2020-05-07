@@ -8,14 +8,13 @@ import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessPriority;
 public class LongTermScheduler extends Thread{
     private SynchronisedQueue<PCB> jobQueue;
     private SynchronisedArrayList<PCB> sortedJobs;
-    boolean computerIsRunning;
+    boolean computerIsRunning = true;
     private int highQuantum;
     private int lowQuantum;
 
-    public LongTermScheduler(SynchronisedQueue<PCB> jobQueue, SynchronisedArrayList<PCB> sortedJobs, boolean computerIsRunning, int highQuantum, int lowQuantum){
+    public LongTermScheduler(SynchronisedQueue<PCB> jobQueue, SynchronisedArrayList<PCB> sortedJobs, int highQuantum, int lowQuantum){
         this.jobQueue = jobQueue;
         this.sortedJobs = sortedJobs;
-        this.computerIsRunning = computerIsRunning;
         this.highQuantum = highQuantum;
         this.lowQuantum = lowQuantum;
     }
@@ -30,8 +29,9 @@ public class LongTermScheduler extends Thread{
             }
             sortedJobs.add(process);
         }
-        while(jobQueue.size() > 0){
-            jobQueue.remove();
-        }
+    }
+
+    public void endThread(){
+        computerIsRunning = false;
     }
 }

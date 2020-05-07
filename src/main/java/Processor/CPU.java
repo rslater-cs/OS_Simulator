@@ -18,14 +18,13 @@ public class CPU extends Thread{
     private SynchronisedQueue<Instruction> dataToMemory;
     private SynchronisedQueue<String> printQueue;
     private int freq;
-    private boolean computerIsRunning;
+    private boolean computerIsRunning = true;
     private int multiplier = 1;
     private Operand currentReturnRegister;
     private PCB currentPCB;
 
     public CPU(SynchronisedQueue<PCB> readyQueue, SynchronisedQueue<PCB> jobQueue, SynchronisedQueue<Address> addressQueue,
-               SynchronisedQueue<Instruction> dataToCPU, SynchronisedQueue<Instruction> dataToMemory, SynchronisedQueue<String> printQueue, int freq,
-               boolean computerIsRunning){
+               SynchronisedQueue<Instruction> dataToCPU, SynchronisedQueue<Instruction> dataToMemory, SynchronisedQueue<String> printQueue, int freq){
         this.freq = freq;
         this.readyQueue = readyQueue;
         this.jobQueue = jobQueue;
@@ -33,7 +32,6 @@ public class CPU extends Thread{
         this.dataToCPU = dataToCPU;
         this.dataToMemory = dataToMemory;
         this.printQueue = printQueue;
-        this.computerIsRunning = computerIsRunning;
     }
 
     public void run(){
@@ -128,6 +126,10 @@ public class CPU extends Thread{
 
     public void setMultiplier(int multiplier){
         this.multiplier = multiplier;
+    }
+
+    public void endThread(){
+        computerIsRunning = false;
     }
 
     private void clock(){

@@ -12,9 +12,9 @@ import javafx.scene.paint.Color;
 public class MessageBox {
     private Label text = new Label("");
     private ScrollPane textArea = new ScrollPane();
-    private boolean computerIsRunning;
+    private boolean computerIsRunning = true;
 
-    public MessageBox(double height, double width, Background background, SynchronisedQueue<String> printQueue, boolean computerIsRunning){
+    public MessageBox(double height, double width, Background background, SynchronisedQueue<String> printQueue){
         textArea.setMinHeight(height);
         textArea.setMinWidth(width);
         text.setMinHeight(height);
@@ -26,7 +26,6 @@ public class MessageBox {
         text.setTextFill(Color.WHITE);
         text.setAlignment(Pos.BOTTOM_LEFT);
         textArea.setContent(text);
-        this.computerIsRunning = computerIsRunning;
 
         Task<Void> task = new Task<>(){
 
@@ -48,5 +47,9 @@ public class MessageBox {
 
     public ScrollPane getRender(){
         return textArea;
+    }
+
+    public void endThread(){
+        computerIsRunning = false;
     }
 }

@@ -3,8 +3,8 @@ package Shell;
 import DataTypes.SynchronisedArrayList;
 import DataTypes.SynchronisedQueue;
 import Memory.ram.MemoryController;
-import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.Data.Instruction.Instruction;
+import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.ProcessControlBlock.PCB;
 import Processor.CPU;
 import Scheduler.LongTermScheduler;
@@ -77,22 +77,30 @@ public class Shell extends Application {
     }
 
     private void makeComponents(){
-        SynchronisedQueue<Address> addressQueue = new SynchronisedQueue<>(10);
-        SynchronisedQueue<Instruction> dataToCPU = new SynchronisedQueue<>(10);
-        SynchronisedQueue<Instruction> dataToMemory = new SynchronisedQueue<>(10);
+        SynchronisedQueue<Address> addressFromCPUToMemory = new SynchronisedQueue<>(10);
+        SynchronisedQueue<Address> addressFromCPUToCache = new SynchronisedQueue<>(10);
+        SynchronisedQueue<Address> addressFromCacheToMemory = new SynchronisedQueue<>(10);
+
+        SynchronisedQueue<Instruction> dataFromCPUToMemory = new SynchronisedQueue<>(10);
+        SynchronisedQueue<Instruction> dataFromMemoryToCPU = new SynchronisedQueue<>(10);
+        SynchronisedQueue<Instruction> dataFromCacheToCPU = new SynchronisedQueue<>(10);
+        SynchronisedQueue<Instruction> dataFromMemoryToCache = new SynchronisedQueue<>(10);
 
         SynchronisedQueue<PCB> jobQueue = new SynchronisedQueue<>(1000);
         SynchronisedArrayList<PCB> sortedQueue = new SynchronisedArrayList<>(100);
         SynchronisedQueue<PCB> readyQueue = new SynchronisedQueue<>(10);
+        SynchronisedQueue<PCB> jobsToBeRun = new SynchronisedQueue<>(10);
 
-        LongTermScheduler longScheduler = new LongTermScheduler(jobQueue, sortedQueue, true, 10, 5);
-        ShortTermScheduler shortScheduler = new ShortTermScheduler(sortedQueue, readyQueue, true);
+        LongTermScheduler longScheduler = new LongTermScheduler(jobQueue, sortedQueue, 10, 5);
+        ShortTermScheduler shortScheduler = new ShortTermScheduler(sortedQueue, readyQueue);
 
-        textView = new MessageBox(OUTPUT_TEXT_HEIGHT, OUTPUT_TEXT_WIDTH, background, printQueue, true);
+        textView = new MessageBox(OUTPUT_TEXT_HEIGHT, OUTPUT_TEXT_WIDTH, background, printQueue);
 
-        CPU processor = new CPU(readyQueue, jobQueue, addressQueue, dataToCPU, dataToMemory, printQueue,  10, true);
-        executer = new Executer(processor, addressQueue, dataToMemory, jobQueue);
-        MemoryController ram = new MemoryController(dataToCPU, dataToMemory, addressQueue, printQueue, 5, 40, true);
+
+        CPU processor = new CPU(readyQueue, jobQueue, addressFromCPUToMemory, dataFromMemoryToCPU, dataFromCPUToMemory, printQueue,  10);
+        executer = new Executer(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue);
+        MemoryController ram = new MemoryController(dataFromMemoryToCPU, dataFromCPUToMemory, dataFromMemoryToCache,
+                addressFromCacheToMemory, addressFromCPUToMemory, printQueue, 5, 40);
 
         ram.start();
         shortScheduler.start();
