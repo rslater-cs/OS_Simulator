@@ -31,16 +31,14 @@ public class PCB {
         return programCounter;
     }
 
+
+    //Make this cpu intensive?
     public int incProgramCounter() {
         processTime.setEnd();
         if(programCounter - memoryLimits.getEnd() == 0){
             this.processState = ProcessState.TERMINATING;
         }
         return programCounter++;
-    }
-
-    public void setProcessCounter(int process){
-        programCounter = process;
     }
 
     public MemoryLimits getMemoryLimits() {

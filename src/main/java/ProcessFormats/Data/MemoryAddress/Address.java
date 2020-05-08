@@ -19,6 +19,7 @@ public class Address {
 
     @Override
     public boolean equals(Object obj) {
+        if(obj == null) return false;
         Address otherAddress = (Address)obj;
         return (otherAddress.getPid() == getPid() && otherAddress.getAddress() == getAddress());
     }

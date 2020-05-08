@@ -25,7 +25,7 @@ public class CPU extends Thread{
 
     private int freq;
     private boolean computerIsRunning = true;
-    private int multiplier = 1;
+
     private Operand currentReturnRegister;
     private PCB currentPCB;
 
@@ -54,26 +54,25 @@ public class CPU extends Thread{
     }
 
     public void run(){
-        while(computerIsRunning){
-            currentPCB = readyQueue.remove();
-            //System.out.println("-------------------------");
-            //System.out.println(currentPCB.getID());
-            currentReturnRegister = currentPCB.restoreRegister();
-            for(int x = 0; x < currentPCB.getQuantum(); x++) {
-                int address = currentPCB.incProgramCounter();
-                Instruction instruction = instructionFetch(address);
-                //System.out.println(instruction);
-                instruction = decode(instruction);
-                execute(instruction);
-                if (currentPCB.getProcessState() == ProcessState.TERMINATING) {
-                    addressFromCPUToMemory.add(new Address(currentPCB.getID(), -1));
-                    currentPCB.setProcessState(ProcessState.TERMINATED);
-                    break;
+        while(computerIsRunning) {
+            if (readyQueue.size() > 0) {
+                currentPCB = readyQueue.remove();
+                currentReturnRegister = currentPCB.restoreRegister();
+                for (int x = 0; x < currentPCB.getQuantum(); x++) {
+                    int address = currentPCB.incProgramCounter();
+                    Instruction instruction = instructionFetch(address);
+                    instruction = decode(instruction);
+                    execute(instruction);
+                    if (currentPCB.getProcessState() == ProcessState.TERMINATING) {
+                        addressFromCPUToMemory.add(new Address(currentPCB.getID(), -1));
+                        currentPCB.setProcessState(ProcessState.TERMINATED);
+                        break;
+                    }
                 }
-            }
-            if(currentPCB.getProcessState() != ProcessState.TERMINATED){
-                currentPCB.pasteRegister(currentReturnRegister);
-                jobQueue.add(currentPCB);
+                if (currentPCB.getProcessState() != ProcessState.TERMINATED) {
+                    currentPCB.pasteRegister(currentReturnRegister);
+                    jobQueue.add(currentPCB);
+                }
             }
         }
     }
@@ -84,8 +83,8 @@ public class CPU extends Thread{
     }
 
     private Instruction dataFetch(int address){
-        clock();
         addressFromCPUToMemory.add(new Address(currentPCB.getID(), address));
+        clock();
         return dataFromMemoryToCPU.remove();
     }
 
@@ -148,8 +147,8 @@ public class CPU extends Thread{
         return new Operand("", AddressMode.IMMEDIATE);
     }
 
-    public void setMultiplier(int multiplier){
-        this.multiplier = multiplier;
+    public void setFreq(int multiplier){
+        this.freq = multiplier;
     }
 
     public void endThread(){
@@ -158,7 +157,7 @@ public class CPU extends Thread{
 
     private void clock(){
         try{
-            Thread.sleep((long)(((1.0/freq)*1000)*multiplier));
+            Thread.sleep((long)(((1.0/freq)*1000)));
         }catch(Exception e){
             e.printStackTrace();
         }

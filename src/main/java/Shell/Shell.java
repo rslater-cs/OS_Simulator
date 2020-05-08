@@ -1,21 +1,16 @@
 package Shell;
 
-import DataTypes.SynchronisedArrayList;
 import DataTypes.SynchronisedQueue;
-import Memory.cache.Cache;
-import Memory.ram.MemoryController;
 import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.ProcessControlBlock.PCB;
 import Processor.CPU;
-import Scheduler.LongTermScheduler;
-import Scheduler.ShortTermScheduler;
 import Shell.CommandExecuter.Executer;
+import Shell.CommandExecuter.ThreadExecutioner;
 import Shell.History.History;
 import Shell.Text.OutputDisplay.MessageBox;
 import Shell.Text.Validater.Validation;
 import Shell.Text.userLine.TextBox;
-import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
@@ -26,10 +21,9 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.stage.Stage;
 
 
-public class Shell extends Application {
+public class Shell {
     private static final Background background = new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY));
     private static final double COMMAND_LINE_HEIGHT = 20;
     private TextBox userRegion = new TextBox(background, COMMAND_LINE_HEIGHT);
@@ -40,79 +34,56 @@ public class Shell extends Application {
     private static final double OUTPUT_TEXT_WIDTH = 900;
     private MessageBox textView;
 
-    private SynchronisedQueue<String> printQueue = new SynchronisedQueue<>(100);
+    private SynchronisedQueue<String> printQueue;
 
     private History history = new History();
 
     GridPane grid = new GridPane();
 
-    private static final double PADDING = 10;
-
     private static final Rectangle cursor = new Rectangle(2, 15);
 
     private Executer executer;
 
-    public static void main(String[] args) {
-        launch(args);
+    private Scene scene;
+
+    public Shell(CPU processor,
+                 SynchronisedQueue<Address> addressFromCPUToMemory,
+                 SynchronisedQueue<Instruction> dataFromCPUToMemory,
+                 SynchronisedQueue<PCB> jobQueue,
+                 SynchronisedQueue<String> printQueue,
+                 ThreadExecutioner threadExecutioner){
+        this.printQueue = printQueue;
+        makeComponents(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue, threadExecutioner);
+        makeScene();
     }
 
-    @Override
-    public void start(Stage stage) throws Exception {
-        makeComponents();
-        makeStage(stage);
-    }
-
-    private void makeStage(Stage stage){
+    private void makeScene(){
         cursor.setFill(Color.WHITE);
         GridPane gridPane = makeCursorGrid();
         grid.add(textView.getRender(), 0, 0);
         grid.add(gridPane, 0, 1);
 
-        Scene scene = new Scene(grid, OUTPUT_TEXT_WIDTH, OUTPUT_TEXT_HEIGHT+COMMAND_LINE_HEIGHT);
+        scene = new Scene(grid, OUTPUT_TEXT_WIDTH, OUTPUT_TEXT_HEIGHT+COMMAND_LINE_HEIGHT);
         scene.setFill(Color.BLACK);
         scene.setOnKeyPressed(this::decode);
-
-        stage.setScene(scene);
-        stage.setTitle(TITLE);
-        stage.show();
     }
 
-    private void makeComponents(){
-        SynchronisedQueue<Address> addressFromCPUToMemory = new SynchronisedQueue<>(10);
-        SynchronisedQueue<Address> addressFromCPUToCache = new SynchronisedQueue<>(10);
-        SynchronisedQueue<Address> addressFromCacheToMemory = new SynchronisedQueue<>(10);
+    public Scene renderScene(){
+        return scene;
+    }
 
-        SynchronisedQueue<Instruction> dataFromCPUToMemory = new SynchronisedQueue<>(10);
-        SynchronisedQueue<Instruction> dataFromMemoryToCPU = new SynchronisedQueue<>(10);
-        SynchronisedQueue<Instruction> dataFromCacheToCPU = new SynchronisedQueue<>(10);
-        SynchronisedQueue<Instruction> dataFromMemoryToCache = new SynchronisedQueue<>(10);
+    public MessageBox getMessageBox(){
+        return textView;
+    }
 
-        SynchronisedQueue<PCB> jobQueue = new SynchronisedQueue<>(1000);
-        SynchronisedArrayList<PCB> sortedQueue = new SynchronisedArrayList<>(100);
-        SynchronisedQueue<PCB> readyQueue = new SynchronisedQueue<>(10);
-        SynchronisedQueue<PCB> jobsToBeRun = new SynchronisedQueue<>(10);
-
-        LongTermScheduler longScheduler = new LongTermScheduler(jobQueue, sortedQueue, 10, 5);
-        ShortTermScheduler shortScheduler = new ShortTermScheduler(sortedQueue, readyQueue, jobsToBeRun);
-
+    private void makeComponents(CPU processor,
+                                SynchronisedQueue<Address> addressFromCPUToMemory,
+                                SynchronisedQueue<Instruction> dataFromCPUToMemory,
+                                SynchronisedQueue<PCB> jobQueue,
+                                ThreadExecutioner threadExecutioner){
         textView = new MessageBox(OUTPUT_TEXT_HEIGHT, OUTPUT_TEXT_WIDTH, background, printQueue);
-
-        Cache cache = new Cache(dataFromCacheToCPU, dataFromMemoryToCache, addressFromCacheToMemory,
-                addressFromCPUToCache, jobsToBeRun, 32);
-
-        MemoryController ram = new MemoryController(dataFromMemoryToCPU, dataFromCPUToMemory, dataFromMemoryToCache,
-                addressFromCacheToMemory, addressFromCPUToMemory, printQueue, 5, 40);
-
-        CPU processor = new CPU(readyQueue, jobQueue, addressFromCPUToMemory, addressFromCPUToCache,
-                dataFromMemoryToCPU, dataFromCPUToMemory, dataFromCacheToCPU, printQueue,  10);
-
-        executer = new Executer(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue);
-
-        cache.start();
-        ram.start();
-        shortScheduler.start();
-        longScheduler.start();
-        processor.start();
+        threadExecutioner.addMessageBox(textView);
+        executer = new Executer(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue, threadExecutioner);
     }
 
     private void decode(KeyEvent e){

@@ -45,18 +45,18 @@ public class Cache extends Thread{
         while(computerIsRunning){
             if(processesToBeRun.size() > 0 && pointer.isFreeSpace()){
                 PCB pcb = processesToBeRun.remove();
-                System.out.println(pcb);
-                fetchData(pcb.getProgramCounter(), pcb.getQuantum(), pcb.getID());
+
+                fetchData(pcb.getProgramCounter(), pcb.getQuantum(), pcb.getMemoryLimits().getEnd(), pcb.getID());
             }
             if(addressFromCPUToCache.size() > 0){
                 Address address = addressFromCPUToCache.remove();
-                System.out.println(address);
                 int index;
                 if((index = addressExists(address)) != -1){
                     dataFromCacheToCPU.add(instructions[index]);
                     pointer.addFreePoint(index);
                 }else{
-                    dataFromCacheToCPU.add(memoryFetch(address));
+                    Instruction inst = memoryFetch(address);
+                    dataFromCacheToCPU.add(inst);
                 }
             }
         }
@@ -66,12 +66,14 @@ public class Cache extends Thread{
         computerIsRunning = false;
     }
 
-    private void fetchData(int start, int length, int pid){
+    private void fetchData(int start, int length, int end, int pid){
+        length = getInstructionsLeft(length, start, end);
         for(int x = 0; x < length; x++){
             final int index = pointer.nextFreeSpace();
-            System.out.println(index);
-            addresses[index] = new Address(pid, x+start);
-            instructions[index] = memoryFetch(addresses[index]);
+            if(index != -1) {
+                addresses[index] = new Address(pid, x + start);
+                instructions[index] = memoryFetch(addresses[index]);
+            }
         }
     }
 
@@ -82,8 +84,16 @@ public class Cache extends Thread{
 
     private int addressExists(Address address){
         for(int x = 0; x < addresses.length; x++){
-             if(addresses[x].equals(address)) return x;
+            if(address.equals(addresses[x])) return x;
         }
         return -1;
+    }
+
+    private int getInstructionsLeft(int quantum, int programCounter, int endOfInstructions){
+        final int instructionsLeft = endOfInstructions - programCounter;
+        if(instructionsLeft < quantum){
+            return instructionsLeft;
+        }
+        return quantum;
     }
 }

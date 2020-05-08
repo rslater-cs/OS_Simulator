@@ -58,7 +58,7 @@ public class MemoryController extends Thread{
     public void run(){
         while(computerIsRunning){
             Address relativeAddress = null;
-            SynchronisedQueue<Instruction> returnQueue;
+            SynchronisedQueue<Instruction> returnQueue = null;
             if(addressFromCacheToMemory.size() > 0){
                 relativeAddress = addressFromCacheToMemory.remove();
                 returnQueue = dataFromMemoryToCache;
@@ -66,14 +66,15 @@ public class MemoryController extends Thread{
                 relativeAddress = addressFromCPUToMemory.remove();
                 returnQueue = dataFromMemoryToCPU;
             }
-            //final Address relativeAddress = addressFromCPUToMemory.remove();
-            if(relativeAddress != null) {
+
+            if(relativeAddress != null && returnQueue != null) {
                 if (relativeAddress.getAddress() == -1) {
                     deleteData(relativeAddress.getPid());
                 } else {
                     int[] absoluteAddress;
-                    if (dataFromCPUToMemory.size() > 0) {
+                    if (dataFromCPUToMemory.size() > 0 && returnQueue == dataFromMemoryToCPU) {
                         Instruction instruction = dataFromCPUToMemory.remove();
+
                         if (instruction.getProcess() == Opcode.HDR) {
                             absoluteAddress = createProgramSpace(relativeAddress.getPid(), instruction.getArg(0).getIntArgument());
                         } else {
@@ -90,10 +91,10 @@ public class MemoryController extends Thread{
                         absoluteAddress = getAbsoluteAddress(relativeAddress);
                         if (absoluteAddress[0] == -1) {
                             printError("Memory address requested is out of bounds of program space");
-                            dataFromMemoryToCPU.add(new Instruction(Opcode.ERR, null));
+                            returnQueue.add(new Instruction(Opcode.ERR, null));
                         } else {
                             Instruction[] page = memoryChip.getData(absoluteAddress[0]);
-                            dataFromMemoryToCPU.add(page[absoluteAddress[1]]);
+                            returnQueue.add(page[absoluteAddress[1]]);
                         }
                     }
                 }
@@ -102,8 +103,7 @@ public class MemoryController extends Thread{
     }
 
     public int decodeAddress(int address){
-        int pageNum = address / pageSize;
-        return pageNum;
+        return address / pageSize;
     }
 
     private int[] getAbsoluteAddress(Address relativeAddress){
@@ -177,7 +177,7 @@ public class MemoryController extends Thread{
         dataFromMemoryToCPU.add(new Instruction(Opcode.ERR, new Operand[]{new Operand(new RuntimeException(errorMessage).toString(), AddressMode.NONE)}));
     }
 
-    private void endThread(){
+    public void endThread(){
         computerIsRunning = false;
     }
 

@@ -21,13 +21,15 @@ public class LongTermScheduler extends Thread{
 
     public void run(){
         while(computerIsRunning){
-            final PCB process = jobQueue.remove();
-            if(process.getPriority() == ProcessPriority.HIGH){
-                process.setQuantum(highQuantum);
-            } else if(process.getPriority() == ProcessPriority.LOW){
-                process.setQuantum(lowQuantum);
+            if(jobQueue.size() > 0) {
+                final PCB process = jobQueue.remove();
+                if (process.getPriority() == ProcessPriority.HIGH) {
+                    process.setQuantum(highQuantum);
+                } else if (process.getPriority() == ProcessPriority.LOW) {
+                    process.setQuantum(lowQuantum);
+                }
+                sortedJobs.add(process);
             }
-            sortedJobs.add(process);
         }
     }
 

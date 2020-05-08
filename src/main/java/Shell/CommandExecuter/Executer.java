@@ -25,12 +25,18 @@ public class Executer {
     private SynchronisedQueue<Instruction> dataQueue;
     private SynchronisedQueue<PCB> jobQueue;
     private ProcessIDAssigner pidAssigner = new ProcessIDAssigner();
+    private ThreadExecutioner threadExecutioner;
 
-    public Executer(CPU processor, SynchronisedQueue<Address> addressQueue, SynchronisedQueue<Instruction> dataQueue, SynchronisedQueue<PCB> jobQueue){
+    public Executer(CPU processor,
+                    SynchronisedQueue<Address> addressQueue,
+                    SynchronisedQueue<Instruction> dataQueue,
+                    SynchronisedQueue<PCB> jobQueue,
+                    ThreadExecutioner threadExecutioner){
         this.processor = processor;
         this.addressQueue = addressQueue;
         this.dataQueue = dataQueue;
         this.jobQueue = jobQueue;
+        this.threadExecutioner = threadExecutioner;
     }
 
     public Exception start(String line){
@@ -67,7 +73,7 @@ public class Executer {
         if(command.length != 1){
             return wrongArgAmountException(0,  command.length-1, command[0]);
         }
-        System.exit(0);
+        threadExecutioner.endProgram();
         return null;
     }
 
@@ -108,13 +114,13 @@ public class Executer {
         return null;
     }
 
-    public Exception slowspeed(String[] command){
+    public Exception setfreq(String[] command){
         if(command.length != 2) return wrongArgAmountException(1,  command.length-1, command[0]);
         else{
             if(Validation.validateWord(command[1]) != LetterType.VALUE) return wrongArgTypeException();
         }
 
-        processor.setMultiplier(Integer.parseInt(command[1]));
+        processor.setFreq(Integer.parseInt(command[1]));
 
         return null;
     }
