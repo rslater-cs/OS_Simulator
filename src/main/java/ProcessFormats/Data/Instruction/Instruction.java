@@ -39,8 +39,9 @@ public class Instruction {
     @Override
     public String toString(){
         String result =  process + " ";
+        if(args == null) return result;
         for(Operand arg : args){
-            result += arg.toString() + " ";
+            if(arg != null) result += arg.toString() + " ";
         }
         return result;
     }

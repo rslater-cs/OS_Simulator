@@ -61,6 +61,7 @@ public class CPU extends Thread{
                 for (int x = 0; x < currentPCB.getQuantum(); x++) {
                     int address = currentPCB.incProgramCounter();
                     Instruction instruction = instructionFetch(address);
+                    System.out.println(instruction);
                     instruction = decode(instruction);
                     execute(instruction);
                     if (currentPCB.getProcessState() == ProcessState.TERMINATING) {
