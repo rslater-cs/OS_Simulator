@@ -11,8 +11,13 @@ import Scheduler.LongTermScheduler;
 import Scheduler.ShortTermScheduler;
 import Shell.CommandExecuter.ThreadExecutioner;
 import Shell.Shell;
+import Shell.subsystemstats.GraphData;
+import Shell.subsystemstats.SubSystemGraph;
 import javafx.application.Application;
+import javafx.collections.ArrayChangeListener;
 import javafx.stage.Stage;
+
+import java.util.ArrayList;
 
 public class Kernel extends Application {
 
@@ -51,6 +56,10 @@ public class Kernel extends Application {
 
         SynchronisedQueue<String> printQueue = new SynchronisedQueue<>(bootDetails[4]);
 
+        ArrayList<GraphData> graphData = new ArrayList<>();
+
+        SubSystemGraph graph = new SubSystemGraph(graphData);
+
         LongTermScheduler longScheduler = new LongTermScheduler(jobQueue, sortedQueue, bootDetails[5], bootDetails[6]);
         ShortTermScheduler shortScheduler = new ShortTermScheduler(sortedQueue, readyQueue, jobsToBeRun);
 
@@ -58,7 +67,7 @@ public class Kernel extends Application {
                 addressFromCPUToCache, jobsToBeRun, bootDetails[7]);
 
         MemoryController ram = new MemoryController(dataFromMemoryToCPU, dataFromCPUToMemory, dataFromMemoryToCache,
-                addressFromCacheToMemory, addressFromCPUToMemory, printQueue, bootDetails[8], bootDetails[9]);
+                addressFromCacheToMemory, addressFromCPUToMemory, printQueue, graphData, bootDetails[8], bootDetails[9]);
 
         CPU processor = new CPU(readyQueue, jobQueue, addressFromCPUToMemory, addressFromCPUToCache,
                 dataFromMemoryToCPU, dataFromCPUToMemory, dataFromCacheToCPU, printQueue,  bootDetails[10]);
@@ -72,7 +81,7 @@ public class Kernel extends Application {
         ThreadExecutioner threadExecutioner = new ThreadExecutioner(processor, ram, cache, shortScheduler, longScheduler);
 
 
-        Shell shell = new Shell(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue, printQueue, threadExecutioner);
+        Shell shell = new Shell(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue, printQueue, graph, threadExecutioner);
         primaryStage.setScene(shell.renderScene());
 
         String title = bootFile.getLine().split("=")[1];

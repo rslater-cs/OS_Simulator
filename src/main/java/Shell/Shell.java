@@ -11,6 +11,7 @@ import Shell.History.History;
 import Shell.Text.OutputDisplay.MessageBox;
 import Shell.Text.Validater.Validation;
 import Shell.Text.userLine.TextBox;
+import Shell.subsystemstats.SubSystemGraph;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
@@ -51,9 +52,10 @@ public class Shell {
                  SynchronisedQueue<Instruction> dataFromCPUToMemory,
                  SynchronisedQueue<PCB> jobQueue,
                  SynchronisedQueue<String> printQueue,
+                 SubSystemGraph graph,
                  ThreadExecutioner threadExecutioner){
         this.printQueue = printQueue;
-        makeComponents(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue, threadExecutioner);
+        makeComponents(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue, threadExecutioner, graph);
         makeScene();
     }
 
@@ -80,10 +82,11 @@ public class Shell {
                                 SynchronisedQueue<Address> addressFromCPUToMemory,
                                 SynchronisedQueue<Instruction> dataFromCPUToMemory,
                                 SynchronisedQueue<PCB> jobQueue,
-                                ThreadExecutioner threadExecutioner){
+                                ThreadExecutioner threadExecutioner,
+                                SubSystemGraph graph){
         textView = new MessageBox(OUTPUT_TEXT_HEIGHT, OUTPUT_TEXT_WIDTH, background, printQueue);
         threadExecutioner.addMessageBox(textView);
-        executer = new Executer(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue, threadExecutioner);
+        executer = new Executer(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue, graph, threadExecutioner);
     }
 
     private void decode(KeyEvent e){

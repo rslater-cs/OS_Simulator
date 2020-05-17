@@ -8,6 +8,7 @@ import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.Data.Instruction.Operand.AddressMode;
 import ProcessFormats.Data.Instruction.Operand.Operand;
 import ProcessFormats.Data.Instruction.Instruction;
+import Shell.subsystemstats.GraphData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,6 +31,8 @@ public class MemoryController extends Thread{
 
     private SynchronisedQueue<String> printQueue;
 
+    private ArrayList<GraphData> graphData = new ArrayList<>();
+
     private boolean computerIsRunning = true;
 
     public MemoryController(SynchronisedQueue<Instruction> dataFromMemoryToCPU,
@@ -38,6 +41,7 @@ public class MemoryController extends Thread{
                             SynchronisedQueue<Address> addressFromCacheToMemory,
                             SynchronisedQueue<Address> addressFromCPUToMemory,
                             SynchronisedQueue<String> printQueue,
+                            ArrayList<GraphData> graphData,
                             int amountOfPages, int pageSize){
         this.amountOfPages = amountOfPages;
         this.pageSize = pageSize;
@@ -51,6 +55,8 @@ public class MemoryController extends Thread{
         this.addressFromCacheToMemory = addressFromCacheToMemory;
 
         this.printQueue = printQueue;
+
+        this.graphData = graphData;
 
         this.openDataPoints.add(new PagePointer(0, amountOfPages));
     }
@@ -70,6 +76,7 @@ public class MemoryController extends Thread{
             if(relativeAddress != null && returnQueue != null) {
                 if (relativeAddress.getAddress() == -1) {
                     deleteData(relativeAddress.getPid());
+                    graphData.add(new GraphData(getPercentUsage(), System.currentTimeMillis()));
                 } else {
                     int[] absoluteAddress;
                     if (dataFromCPUToMemory.size() > 0 && returnQueue == dataFromMemoryToCPU) {
@@ -77,6 +84,7 @@ public class MemoryController extends Thread{
 
                         if (instruction.getProcess() == Opcode.HDR) {
                             absoluteAddress = createProgramSpace(relativeAddress.getPid(), instruction.getArg(0).getIntArgument());
+                            graphData.add(new GraphData(getPercentUsage(), System.currentTimeMillis()));
                         } else {
                             absoluteAddress = getAbsoluteAddress(relativeAddress);
                         }
@@ -177,13 +185,21 @@ public class MemoryController extends Thread{
         dataFromMemoryToCPU.add(new Instruction(Opcode.ERR, new Operand[]{new Operand(new RuntimeException(errorMessage).toString(), AddressMode.NONE)}));
     }
 
+    private double getPercentUsage(){
+        int openPoints = 0;
+        for(PagePointer pointer: openDataPoints){
+            openPoints += pointer.getBounds();
+        }
+        return (double)openPoints / (double)amountOfPages;
+    }
+
     public void endThread(){
         computerIsRunning = false;
     }
 
     @Override
     public String toString() {
-        StringBuffer memorySummary = new StringBuffer();
+        StringBuilder memorySummary = new StringBuilder();
 
         memorySummary.append("page size: ");
         memorySummary.append(pageSize*amountOfPages);

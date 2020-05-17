@@ -50,7 +50,6 @@ public class Cache extends Thread{
             }
             if(addressFromCPUToCache.size() > 0){
                 Address address = addressFromCPUToCache.remove();
-                System.out.println(address);
                 int index;
                 if((index = addressExists(address)) != -1){
                     dataFromCacheToCPU.add(instructions[index]);
@@ -59,7 +58,6 @@ public class Cache extends Thread{
                     Instruction inst = memoryFetch(address);
                     dataFromCacheToCPU.add(inst);
                 }
-                System.out.println(index);
             }
         }
     }

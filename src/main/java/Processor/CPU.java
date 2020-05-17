@@ -62,8 +62,13 @@ public class CPU extends Thread{
                     int address = currentPCB.incProgramCounter();
                     Instruction instruction = instructionFetch(address);
                     System.out.println(instruction);
-                    instruction = decode(instruction);
-                    execute(instruction);
+                    if(instruction != null) {
+                        instruction = decode(instruction);
+                        execute(instruction);
+                    }else{
+                        printQueue.add("Instruction received is null, aborting execution");
+                        currentPCB.setProcessState(ProcessState.TERMINATING);
+                    }
                     if (currentPCB.getProcessState() == ProcessState.TERMINATING) {
                         addressFromCPUToMemory.add(new Address(currentPCB.getID(), -1));
                         currentPCB.setProcessState(ProcessState.TERMINATED);
