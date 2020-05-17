@@ -76,7 +76,7 @@ public class MemoryController extends Thread{
             if(relativeAddress != null && returnQueue != null) {
                 if (relativeAddress.getAddress() == -1) {
                     deleteData(relativeAddress.getPid());
-                    graphData.add(new GraphData(getPercentUsage(), System.currentTimeMillis()));
+                    graphData.add(new GraphData(getPercentUsage(), System.currentTimeMillis()/1000));
                 } else {
                     int[] absoluteAddress;
                     if (dataFromCPUToMemory.size() > 0 && returnQueue == dataFromMemoryToCPU) {
@@ -84,7 +84,7 @@ public class MemoryController extends Thread{
 
                         if (instruction.getProcess() == Opcode.HDR) {
                             absoluteAddress = createProgramSpace(relativeAddress.getPid(), instruction.getArg(0).getIntArgument());
-                            graphData.add(new GraphData(getPercentUsage(), System.currentTimeMillis()));
+                            graphData.add(new GraphData(getPercentUsage(), System.currentTimeMillis()/1000));
                         } else {
                             absoluteAddress = getAbsoluteAddress(relativeAddress);
                         }
@@ -152,7 +152,7 @@ public class MemoryController extends Thread{
 
     private void deleteData(int pid){
         PagePointer pointer = absoluteAddresses.get(pid);
-        if(!joinPointers(pointer)) openDataPoints.add(pointer);
+        openDataPoints.add(pointer);
         print("Deleting pointer " + pointerSummary(pointer));
         absoluteAddresses.remove(pid);
     }
@@ -188,8 +188,11 @@ public class MemoryController extends Thread{
     private double getPercentUsage(){
         int openPoints = 0;
         for(PagePointer pointer: openDataPoints){
+            System.out.println(pointer.getStart() + " " + pointer.getBounds() + " " + pointer.getEnd());
             openPoints += pointer.getBounds();
         }
+        System.out.println(openPoints);
+        System.out.println(amountOfPages);
         return (double)openPoints / (double)amountOfPages;
     }
 

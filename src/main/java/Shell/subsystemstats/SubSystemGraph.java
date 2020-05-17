@@ -8,7 +8,6 @@ import java.util.ArrayList;
 
 public class SubSystemGraph {
     private ArrayList<GraphData> data;
-    private long initTime = System.currentTimeMillis();
     private int maxSize = 100;
 
     public SubSystemGraph(ArrayList<GraphData> data){
@@ -50,9 +49,10 @@ public class SubSystemGraph {
     }
 
     private ArrayList<XYChart.Data<Number, Number>> getAxis(){
+        final long baseTime = data.get(0).getTime();
         ArrayList<XYChart.Data<Number, Number>> axis = new ArrayList<>();
         for(GraphData graphData : data){
-            axis.add(new XYChart.Data<>(graphData.getTime(), graphData.getData()));
+            axis.add(new XYChart.Data<>(graphData.getTime()-baseTime, graphData.getData()));
         }
         return axis;
     }

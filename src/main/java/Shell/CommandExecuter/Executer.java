@@ -131,11 +131,13 @@ public class Executer {
         return null;
     }
 
-    private Exception memstats(String[] command, String title){
+    public Exception memstats(String[] command){
+        System.out.println("Hello");
         if(command.length > 1) return wrongArgAmountException(0, command.length-1, command[0]);
         Stage stage = new Stage();
         Scene scene = new Scene(grpah.render("Memory Usage"));
         stage.setScene(scene);
+        stage.show();
         return null;
     }
 
