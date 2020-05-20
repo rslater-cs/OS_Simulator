@@ -1,8 +1,8 @@
-package Memory.ram;
+package Memory.data.mainmemory;
 
 
 import DataTypes.SynchronisedQueue;
-import Memory.Pointers.PagePointer;
+import Memory.data.MemoryChip;
 import ProcessFormats.Data.Instruction.Opcode.Opcode;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.Data.Instruction.Operand.AddressMode;
@@ -19,8 +19,10 @@ public class MemoryController extends Thread{
 
     private int pageSize;
     private int amountOfPages;
+
     private Map<Integer, PagePointer> absoluteAddresses = new HashMap<>();
     private ArrayList<PagePointer> openDataPoints = new ArrayList<>();
+    private FrameMap frameMap = new FrameMap();
 
     private SynchronisedQueue<Instruction> dataFromMemoryToCPU;
     private SynchronisedQueue<Instruction> dataFromCPUToMemory;
@@ -31,7 +33,7 @@ public class MemoryController extends Thread{
 
     private SynchronisedQueue<String> printQueue;
 
-    private ArrayList<GraphData> graphData = new ArrayList<>();
+    private ArrayList<GraphData> graphData;
 
     private boolean computerIsRunning = true;
 

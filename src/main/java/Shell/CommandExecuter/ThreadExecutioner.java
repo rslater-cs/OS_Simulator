@@ -1,7 +1,7 @@
 package Shell.CommandExecuter;
 
-import Memory.cache.Cache;
-import Memory.ram.MemoryController;
+import Memory.instruction.cache.Cache;
+import Memory.data.mainmemory.MemoryController;
 import Processor.CPU;
 import Scheduler.LongTermScheduler;
 import Scheduler.ShortTermScheduler;

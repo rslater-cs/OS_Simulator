@@ -1,8 +1,8 @@
 import DataTypes.SynchronisedArrayList;
 import DataTypes.SynchronisedQueue;
 import FileHandler.FileReader;
-import Memory.cache.Cache;
-import Memory.ram.MemoryController;
+import Memory.instruction.cache.Cache;
+import Memory.data.mainmemory.MemoryController;
 import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.ProcessControlBlock.PCB;
@@ -14,7 +14,6 @@ import Shell.Shell;
 import Shell.subsystemstats.GraphData;
 import Shell.subsystemstats.SubSystemGraph;
 import javafx.application.Application;
-import javafx.collections.ArrayChangeListener;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;

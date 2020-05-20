@@ -1,4 +1,4 @@
-package Memory.cache;
+package Memory.instruction.cache;
 
 import DataTypes.SynchronisedQueue;
 import ProcessFormats.Data.Instruction.Instruction;

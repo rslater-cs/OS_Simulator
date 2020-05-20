@@ -110,7 +110,7 @@ public class CPU extends Thread{
         return instruction;
     }
 
-    private void execute(Instruction instruction){
+    public void execute(Instruction instruction){
         Operand result = switch(instruction.getProcess()){
             case STR -> str(instruction.getArgs());
             case ADD -> add(instruction.getArgs());
@@ -151,6 +151,14 @@ public class CPU extends Thread{
     private Operand out(Operand[] args){
         printQueue.add("[Process " + currentPCB.getID() + " output] " + args[0].getValue());
         return new Operand("", AddressMode.IMMEDIATE);
+    }
+
+    public Operand getReturnRegister(){
+        return currentReturnRegister;
+    }
+
+    public void testSetPCB(PCB pcb){
+        currentPCB = pcb;
     }
 
     public void setFreq(int multiplier){
