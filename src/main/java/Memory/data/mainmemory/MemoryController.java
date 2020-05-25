@@ -22,7 +22,7 @@ public class MemoryController extends Thread{
 
     private Map<Integer, PagePointer> absoluteAddresses = new HashMap<>();
     private ArrayList<PagePointer> openDataPoints = new ArrayList<>();
-    private FrameMap frameMap = new FrameMap();
+    private FrameMap frameMap;
 
     private SynchronisedQueue<Instruction> dataFromMemoryToCPU;
     private SynchronisedQueue<Instruction> dataFromCPUToMemory;
