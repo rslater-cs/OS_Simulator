@@ -1,8 +1,8 @@
-package Memory.data.mainmemory;
+package Memory.ram;
 
 
 import DataTypes.SynchronisedQueue;
-import Memory.data.MemoryChip;
+import Memory.pointers.PagePointer;
 import ProcessFormats.Data.Instruction.Opcode.Opcode;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.Data.Instruction.Operand.AddressMode;
@@ -10,7 +10,6 @@ import ProcessFormats.Data.Instruction.Operand.Operand;
 import ProcessFormats.Data.Instruction.Instruction;
 import Shell.subsystemstats.GraphData;
 
-import java.awt.print.PageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,8 +19,6 @@ public class MemoryController extends Thread{
 
     private int pageSize;
     private int amountOfPages;
-
-    private FrameMap frames;
 
     private SynchronisedQueue<Instruction> dataFromMemoryToCPU;
     private SynchronisedQueue<Instruction> dataFromCPUToMemory;
@@ -35,6 +32,10 @@ public class MemoryController extends Thread{
     private ArrayList<GraphData> graphData;
 
     private boolean computerIsRunning = true;
+
+    private ArrayList<PagePointer> openDataPoints = new ArrayList<>();
+
+    private Map<Integer, PagePointer> absoluteAddresses = new HashMap<>();
 
     public MemoryController(SynchronisedQueue<Instruction> dataFromMemoryToCPU,
                             SynchronisedQueue<Instruction> dataFromCPUToMemory,
@@ -59,7 +60,7 @@ public class MemoryController extends Thread{
 
         this.graphData = graphData;
 
-        this.frames = new FrameMap(amountOfPages);
+        this.openDataPoints.add(new PagePointer(0, amountOfPages));
     }
 
     public void run(){
@@ -89,7 +90,7 @@ public class MemoryController extends Thread{
                         } else {
                             absoluteAddress = getAbsoluteAddress(relativeAddress);
                         }
-                        if (absoluteAddress == null) {
+                        if (absoluteAddress[0] == -1) {
                             printError("Memory failed to store data, due to low available storage or missing process identification");
                         } else {
                             Instruction[] page = memoryChip.getData(absoluteAddress[0]);
@@ -98,7 +99,7 @@ public class MemoryController extends Thread{
                         }
                     } else {
                         absoluteAddress = getAbsoluteAddress(relativeAddress);
-                        if (absoluteAddress == null) {
+                        if (absoluteAddress[0] == -1) {
                             printError("Memory address requested is out of bounds of program space");
                             returnQueue.add(new Instruction(Opcode.ERR, null));
                         } else {
@@ -116,50 +117,16 @@ public class MemoryController extends Thread{
     }
 
     private int[] getAbsoluteAddress(Address relativeAddress){
-        if(frames.pidExists(relativeAddress.getPid())){
-            int frameNeeded = decodeAddress(relativeAddress.getAddress());
-            PagePointer pointer = frames.getFramePointer(relativeAddress.getPid());
-            int frame = pointer.getFrame(frameNeeded);
-            return new int[]{frame, relativeAddress.getAddress()%pageSize};
+        if(absoluteAddresses.containsKey(relativeAddress.getPid())){
+            int pageNeeded = decodeAddress(relativeAddress.getAddress());
+            pageNeeded += absoluteAddresses.get(relativeAddress.getPid()).getStart();
+            return new int[]{pageNeeded, relativeAddress.getAddress()%pageSize};
         }
-        return null;
+        return new int[]{-1};
     }
 
-    private PagePointer createProgramSpace(int pid, int spaceSize) {
-        boolean pageFound = true;
-        int spaceNeeded = decodeAddress(spaceSize);
-        int minDifference = Integer.MAX_VALUE;
-        if(spaceSize % pageSize > 0) spaceNeeded++;
-        int optimalSpace = -1;
-        int maxHole = -1;
-        int maxHoleIndex = -1;
-        final ArrayList<PagePointer> freePoints = frames.getFreePoints();
-
-        for(int x = 0; x < freePoints.size(); x++){
-            final int difference = freePoints.get(x).getBounds() - spaceNeeded;
-            if(freePoints.get(x).getBounds() > maxHole){
-                maxHoleIndex = x;
-                maxHole = freePoints.get(maxHoleIndex).getBounds();
-            }
-            if(difference < minDifference && difference >= 0){
-                minDifference = difference;
-                optimalSpace = x;
-            }
-        }
-        PagePointer perfectSpace;
-        int size = spaceNeeded;
-        if(optimalSpace == -1) {
-            optimalSpace = maxHoleIndex;
-            pageFound = false;
-            size = freePoints.get(optimalSpace).getBounds();
-        }
-        perfectSpace = splitPointer(freePoints.get(optimalSpace), size);
-        if(!pageFound){
-            perfectSpace = frameReplace(spaceNeeded, pid, perfectSpace);
-        }
-        addPointer(perfectSpace, pid);
-        return perfectSpace;
-        /*int pagesNeeded = decodeAddress(spaceSize)+1;
+    private int[] createProgramSpace(int pid, int spaceSize) {
+        int pagesNeeded = decodeAddress(spaceSize)+1;
         int spaceDifference = Integer.MAX_VALUE;
         PagePointer optimalSpace = null;
         for (PagePointer pointer : openDataPoints) {
@@ -175,21 +142,7 @@ public class MemoryController extends Thread{
             absoluteAddresses.put(pid, perfectSpace);
             return new int[]{perfectSpace.getStart(), 0};
         }
-        return new int[]{-1};*/
-    }
-
-    private void addPointer(PagePointer pointer, int pid){
-        print("Creating data pointer " + pointerSummary(pointer));
-        frames.add(pid, pointer);
-    }
-
-    private PagePointer frameReplace(int spaceNeeded, int pid, PagePointer currentSpace){
-        spaceNeeded -= currentSpace.getBounds();
-        if(frames.pidExists(pid-1)){
-            for(int x = 0; x < spaceNeeded; x++){
-
-            }
-        }
+        return new int[]{-1};
     }
 
     private PagePointer splitPointer(PagePointer pointer, int size){
@@ -201,7 +154,7 @@ public class MemoryController extends Thread{
 
     private void deleteData(int pid){
         PagePointer pointer = absoluteAddresses.get(pid);
-        openDataPoints.add(pointer);
+        if(!joinPointers(pointer)) openDataPoints.add(pointer);
         print("Deleting pointer " + pointerSummary(pointer));
         absoluteAddresses.remove(pid);
     }
@@ -211,14 +164,19 @@ public class MemoryController extends Thread{
         for(int x = 0; x < openDataPoints.size(); x++){
             if(openDataPoints.get(x).getStart() == pointer.getEnd()){
                 print("Joining pointers " + pointerSummary(openDataPoints.get(x)) + " and " + pointerSummary(pointer));
-                openDataPoints.get(x).setStart(pointer.getStart());
+                pointer.setEnd(openDataPoints.get(x).getEnd());
+                openDataPoints.remove(x);
+                x--;
                 hasJoined = true;
             } else if(openDataPoints.get(x).getEnd() == pointer.getStart()){
                 print("Joining pointers " + pointerSummary(openDataPoints.get(x)) + " and " + pointerSummary(pointer));
-                openDataPoints.get(x).setEnd(pointer.getEnd());
+                pointer.setStart(openDataPoints.get(x).getStart());
+                openDataPoints.remove(x);
+                x--;
                 hasJoined = true;
             }
         }
+        openDataPoints.add(pointer);
         return hasJoined;
     }
 

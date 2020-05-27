@@ -1,4 +1,4 @@
-package Memory.data.mainmemory;
+package Memory.pointers;
 
 public class PagePointer {
     private int start;

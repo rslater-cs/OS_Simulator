@@ -1,4 +1,4 @@
-package Memory.data;
+package Memory.ram;
 
 import ProcessFormats.Data.Instruction.Instruction;
 

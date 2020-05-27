@@ -1,6 +1,7 @@
 package Memory.instruction.cache;
 
 import DataTypes.SynchronisedQueue;
+import Memory.pointers.FreeCellPointer;
 import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.ProcessControlBlock.PCB;

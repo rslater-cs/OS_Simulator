@@ -2,7 +2,7 @@ import DataTypes.SynchronisedArrayList;
 import DataTypes.SynchronisedQueue;
 import FileHandler.FileReader;
 import Memory.instruction.cache.Cache;
-import Memory.data.mainmemory.MemoryController;
+import Memory.ram.MemoryController;
 import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.ProcessControlBlock.PCB;
