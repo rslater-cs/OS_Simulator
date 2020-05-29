@@ -1,9 +1,8 @@
-import DataTypes.SynchronisedArrayList;
-import DataTypes.SynchronisedQueue;
+import datatypes.SynchronisedArrayList;
+import datatypes.SynchronisedQueue;
 import ProcessFormats.ProcessControlBlock.InternalObjects.MemoryLimits;
 import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessPriority;
 import ProcessFormats.ProcessControlBlock.PCB;
-import Scheduler.LongTermScheduler;
 import Scheduler.ShortTermScheduler;
 import org.junit.Test;
 

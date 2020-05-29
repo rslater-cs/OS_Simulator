@@ -1,4 +1,4 @@
-package FileHandler.Complier;
+package filehandler.compiler;
 
 import java.util.ArrayList;
 import java.util.HashMap;

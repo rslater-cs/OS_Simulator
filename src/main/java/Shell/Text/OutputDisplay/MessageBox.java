@@ -1,7 +1,7 @@
 package Shell.Text.OutputDisplay;
 
 
-import DataTypes.SynchronisedQueue;
+import datatypes.SynchronisedQueue;
 import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;

@@ -1,10 +1,10 @@
-package Memory.pointers;
+package Memory.ram;
 
-public class PagePointer {
+public class FramePointer {
     private int start;
     private int end;
 
-    public PagePointer(int start, int end){
+    public FramePointer(int start, int end){
         this.start = start;
         this.end = end;
     }

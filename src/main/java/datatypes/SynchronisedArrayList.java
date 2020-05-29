@@ -1,11 +1,8 @@
-package DataTypes;
+package datatypes;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 
 public class SynchronisedArrayList<T> {
     private int maxSize;

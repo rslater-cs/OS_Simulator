@@ -1,4 +1,4 @@
-import DataTypes.SynchronisedQueue;
+import datatypes.SynchronisedQueue;
 import Memory.ram.MemoryController;
 import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.Data.Instruction.Opcode.Opcode;

@@ -1,4 +1,4 @@
-package FileHandler;
+package filehandler;
 
 import java.io.File;
 import java.util.ArrayList;

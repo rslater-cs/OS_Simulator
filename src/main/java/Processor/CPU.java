@@ -1,7 +1,7 @@
 package Processor;
 
 
-import DataTypes.SynchronisedQueue;
+import datatypes.SynchronisedQueue;
 import ProcessFormats.Data.Instruction.Opcode.Opcode;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.Data.Instruction.Operand.AddressMode;
@@ -111,7 +111,7 @@ public class CPU extends Thread{
     }
 
     public void execute(Instruction instruction){
-        Operand result = switch(instruction.getProcess()){
+        currentReturnRegister = switch(instruction.getProcess()){
             case STR -> str(instruction.getArgs());
             case ADD -> add(instruction.getArgs());
             case SUB -> sub(instruction.getArgs());
@@ -120,7 +120,6 @@ public class CPU extends Thread{
             case OUT -> out(instruction.getArgs());
             default -> out(new Operand[]{new Operand("cpu err at process: '" + instruction.getProcess() + "'", AddressMode.IMMEDIATE)});
         };
-        currentReturnRegister = result;
     }
 
     private Operand str(Operand[] args){

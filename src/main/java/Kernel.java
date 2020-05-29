@@ -1,7 +1,7 @@
-import DataTypes.SynchronisedArrayList;
-import DataTypes.SynchronisedQueue;
-import FileHandler.FileReader;
-import Memory.instruction.cache.Cache;
+import datatypes.SynchronisedArrayList;
+import datatypes.SynchronisedQueue;
+import filehandler.FileReader;
+import Memory.cache.Cache;
 import Memory.ram.MemoryController;
 import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.Data.MemoryAddress.Address;

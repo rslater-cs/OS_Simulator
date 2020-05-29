@@ -1,6 +1,6 @@
 package Shell;
 
-import DataTypes.SynchronisedQueue;
+import datatypes.SynchronisedQueue;
 import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.ProcessControlBlock.PCB;

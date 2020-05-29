@@ -1,8 +1,7 @@
 package Memory.ram;
 
 
-import DataTypes.SynchronisedQueue;
-import Memory.pointers.PagePointer;
+import datatypes.SynchronisedQueue;
 import ProcessFormats.Data.Instruction.Opcode.Opcode;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.Data.Instruction.Operand.AddressMode;
@@ -33,9 +32,9 @@ public class MemoryController extends Thread{
 
     private boolean computerIsRunning = true;
 
-    private ArrayList<PagePointer> openDataPoints = new ArrayList<>();
+    private ArrayList<FramePointer> openDataPoints = new ArrayList<>();
 
-    private Map<Integer, PagePointer> absoluteAddresses = new HashMap<>();
+    private Map<Integer, FramePointer> absoluteAddresses = new HashMap<>();
 
     public MemoryController(SynchronisedQueue<Instruction> dataFromMemoryToCPU,
                             SynchronisedQueue<Instruction> dataFromCPUToMemory,
@@ -60,7 +59,7 @@ public class MemoryController extends Thread{
 
         this.graphData = graphData;
 
-        this.openDataPoints.add(new PagePointer(0, amountOfPages));
+        this.openDataPoints.add(new FramePointer(0, amountOfPages));
     }
 
     public void run(){
@@ -80,15 +79,13 @@ public class MemoryController extends Thread{
                     deleteData(relativeAddress.getPid());
                     graphData.add(new GraphData(getPercentUsage(), System.currentTimeMillis()/1000));
                 } else {
-                    int[] absoluteAddress;
+                    int[] absoluteAddress = getAbsoluteAddress(relativeAddress);
                     if (dataFromCPUToMemory.size() > 0 && returnQueue == dataFromMemoryToCPU) {
                         Instruction instruction = dataFromCPUToMemory.remove();
 
                         if (instruction.getProcess() == Opcode.HDR) {
                             absoluteAddress = createProgramSpace(relativeAddress.getPid(), instruction.getArg(0).getIntArgument());
                             graphData.add(new GraphData(getPercentUsage(), System.currentTimeMillis()/1000));
-                        } else {
-                            absoluteAddress = getAbsoluteAddress(relativeAddress);
                         }
                         if (absoluteAddress[0] == -1) {
                             printError("Memory failed to store data, due to low available storage or missing process identification");
@@ -98,7 +95,6 @@ public class MemoryController extends Thread{
                             memoryChip.setData(absoluteAddress[0], page);
                         }
                     } else {
-                        absoluteAddress = getAbsoluteAddress(relativeAddress);
                         if (absoluteAddress[0] == -1) {
                             printError("Memory address requested is out of bounds of program space");
                             returnQueue.add(new Instruction(Opcode.ERR, null));
@@ -128,8 +124,8 @@ public class MemoryController extends Thread{
     private int[] createProgramSpace(int pid, int spaceSize) {
         int pagesNeeded = decodeAddress(spaceSize)+1;
         int spaceDifference = Integer.MAX_VALUE;
-        PagePointer optimalSpace = null;
-        for (PagePointer pointer : openDataPoints) {
+        FramePointer optimalSpace = null;
+        for (FramePointer pointer : openDataPoints) {
             final int difference = pointer.getBounds() - pagesNeeded;
             if (difference < spaceDifference && difference >= 0) {
                 spaceDifference = difference;
@@ -137,7 +133,7 @@ public class MemoryController extends Thread{
             }
         }
         if (optimalSpace != null) {
-            PagePointer perfectSpace = splitPointer(optimalSpace, pagesNeeded);
+            FramePointer perfectSpace = splitPointer(optimalSpace, pagesNeeded);
             print("Creating data pointer " + pointerSummary(perfectSpace));
             absoluteAddresses.put(pid, perfectSpace);
             return new int[]{perfectSpace.getStart(), 0};
@@ -145,21 +141,21 @@ public class MemoryController extends Thread{
         return new int[]{-1};
     }
 
-    private PagePointer splitPointer(PagePointer pointer, int size){
+    private FramePointer splitPointer(FramePointer pointer, int size){
         final int end = pointer.getStart()+size;
-        PagePointer finalPointer = new PagePointer(pointer.getStart(), end);
+        FramePointer finalPointer = new FramePointer(pointer.getStart(), end);
         pointer.setStart(end);
         return finalPointer;
     }
 
     private void deleteData(int pid){
-        PagePointer pointer = absoluteAddresses.get(pid);
+        FramePointer pointer = absoluteAddresses.get(pid);
         if(!joinPointers(pointer)) openDataPoints.add(pointer);
         print("Deleting pointer " + pointerSummary(pointer));
         absoluteAddresses.remove(pid);
     }
 
-    private boolean joinPointers(PagePointer pointer){
+    private boolean joinPointers(FramePointer pointer){
         boolean hasJoined = false;
         for(int x = 0; x < openDataPoints.size(); x++){
             if(openDataPoints.get(x).getStart() == pointer.getEnd()){
@@ -180,7 +176,7 @@ public class MemoryController extends Thread{
         return hasJoined;
     }
 
-    private String pointerSummary(PagePointer pointer){
+    private String pointerSummary(FramePointer pointer){
         return pointer.getStart() + " to " + pointer.getEnd();
     }
 
@@ -194,7 +190,7 @@ public class MemoryController extends Thread{
 
     private double getPercentUsage(){
         int openPoints = 0;
-        for(PagePointer pointer: openDataPoints){
+        for(FramePointer pointer: openDataPoints){
             openPoints += pointer.getBounds();
         }
         return (double)openPoints / (double)amountOfPages;

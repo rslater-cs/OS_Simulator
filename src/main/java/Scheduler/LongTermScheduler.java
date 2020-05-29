@@ -1,7 +1,7 @@
 package Scheduler;
 
-import DataTypes.SynchronisedArrayList;
-import DataTypes.SynchronisedQueue;
+import datatypes.SynchronisedArrayList;
+import datatypes.SynchronisedQueue;
 import ProcessFormats.ProcessControlBlock.PCB;
 import ProcessFormats.ProcessControlBlock.InternalObjects.ProcessPriority;
 

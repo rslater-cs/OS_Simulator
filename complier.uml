@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>FileHandler.Complier</OriginalElement>
+  <nodes>
+    <node x="49.90416666666667" y="710.0">FileHandler.Complier.Interpreter.Interpreter</node>
+    <node x="151.21666666666667" y="0.0">FileHandler.Complier.Variables</node>
+    <node x="0.0" y="300.0">FileHandler.Complier.Interpreter.Pack</node>
+    <node x="145.15416666666667" y="900.0">FileHandler.Complier.Compiler</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="FileHandler.Complier.Interpreter.Pack" target="FileHandler.Complier.Variables">
+      <point x="63.5" y="-180.0" />
+      <point x="190.5" y="275.0" />
+      <point x="206.96666666666667" y="275.0" />
+      <point x="-55.75" y="125.0" />
+    </edge>
+    <edge source="FileHandler.Complier.Compiler" target="FileHandler.Complier.Interpreter.Interpreter">
+      <point x="-97.875" y="-27.0" />
+      <point x="177.77916666666667" y="875.0" />
+      <point x="118.65416666666667" y="875.0" />
+      <point x="-68.75" y="70.0" />
+    </edge>
+    <edge source="FileHandler.Complier.Interpreter.Interpreter" target="FileHandler.Complier.Variables">
+      <point x="103.125" y="-70.0" />
+      <point x="290.25416666666666" y="275.0" />
+      <point x="281.30000000000007" y="275.0" />
+      <point x="18.58333333333337" y="125.0" />
+    </edge>
+    <edge source="FileHandler.Complier.Interpreter.Interpreter" target="FileHandler.Complier.Interpreter.Pack">
+      <point x="-103.125" y="-70.0" />
+      <point x="84.27916666666667" y="685.0" />
+      <point x="63.5" y="685.0" />
+      <point x="-63.5" y="180.0" />
+    </edge>
+    <edge source="FileHandler.Complier.Compiler" target="FileHandler.Complier.Variables">
+      <point x="32.625" y="-27.0" />
+      <point x="308.2791666666667" y="875.0" />
+      <point x="335.40416666666664" y="875.0" />
+      <point x="335.40416666666664" y="275.0" />
+      <point x="318.4666666666667" y="275.0" />
+      <point x="55.75" y="125.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="203.50000000000006" y="557.0" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Fields</Category>
+    <Category>Methods</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

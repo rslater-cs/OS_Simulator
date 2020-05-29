@@ -1,6 +1,6 @@
-package FileHandler.Complier.Interpreter;
+package filehandler.compiler.interpreter;
 
-import FileHandler.Complier.Variables;
+import filehandler.compiler.Variables;
 import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.Data.Instruction.Opcode.Opcode;
 import ProcessFormats.Data.Instruction.Operand.AddressMode;

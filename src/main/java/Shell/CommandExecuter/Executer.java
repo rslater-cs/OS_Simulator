@@ -1,8 +1,8 @@
 package Shell.CommandExecuter;
 
-import DataTypes.SynchronisedQueue;
-import FileHandler.Complier.Compiler;
-import FileHandler.FileReader;
+import datatypes.SynchronisedQueue;
+import filehandler.compiler.Compiler;
+import filehandler.FileReader;
 import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.Data.Instruction.Opcode.Opcode;
 import ProcessFormats.Data.Instruction.Operand.AddressMode;
@@ -17,7 +17,6 @@ import Shell.Text.Validater.Validation;
 import Shell.Text.userLine.LetterType;
 import Shell.subsystemstats.SubSystemGraph;
 import javafx.scene.Scene;
-import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;

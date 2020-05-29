@@ -1,4 +1,4 @@
-import DataTypes.SynchronisedQueue;
+import datatypes.SynchronisedQueue;
 import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.Data.Instruction.Opcode.Opcode;
 import ProcessFormats.Data.Instruction.Operand.AddressMode;

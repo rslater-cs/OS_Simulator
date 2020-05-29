@@ -1,4 +1,4 @@
-package Memory.pointers;
+package Memory.cache;
 
 public class FreeCellPointer {
     private int[] freePoints;

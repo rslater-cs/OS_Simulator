@@ -1,4 +1,4 @@
-package DataTypes;
+package datatypes;
 
 import java.util.LinkedList;
 import java.util.Queue;
