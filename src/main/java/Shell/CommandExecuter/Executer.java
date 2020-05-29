@@ -17,6 +17,7 @@ import Shell.Text.Validater.Validation;
 import Shell.Text.userLine.LetterType;
 import Shell.subsystemstats.SubSystemGraph;
 import javafx.scene.Scene;
+import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
@@ -94,6 +95,7 @@ public class Executer {
         try {
             file = new FileReader(command[1]);
         }catch(Exception e){
+            e.printStackTrace();
             return e;
         }
 
@@ -122,9 +124,8 @@ public class Executer {
 
     public Exception setfreq(String[] command){
         if(command.length != 2) return wrongArgAmountException(1,  command.length-1, command[0]);
-        else{
-            if(Validation.validateWord(command[1]) != LetterType.VALUE) return wrongArgTypeException();
-        }
+        else if(Validation.validateWord(command[1]) != LetterType.VALUE) return wrongArgTypeException();
+        else if (Integer.parseInt(command[1]) < 1) return new IllegalArgumentException("Frequency must be 1 or above");
 
         processor.setFreq(Integer.parseInt(command[1]));
 

@@ -37,6 +37,20 @@ public class Instruction {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if(obj == null) return false;
+        final Instruction instruction = (Instruction)obj;
+        if(args == null && instruction.args == null) return true;
+        if(args == null ^ instruction.args == null) return false;
+        if(instruction.process != process || instruction.args.length != args.length) return false;
+
+        for(int x = 0; x < args.length; x++){
+            if(!args[x].equals(instruction.getArg(x))) return false;
+        }
+        return true;
+    }
+
+    @Override
     public String toString(){
         String result =  process + " ";
         if(args == null) return result;

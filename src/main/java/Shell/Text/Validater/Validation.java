@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 public class Validation {
     private static final String AND = "&";
     private static final String DIRECTORY = "[A-Za-z]+\\.txt";
+    //private static final String DIRECTORY2 = "([A-Z]:\\\\)?([A-Za-z][A-Za-z0-9]+\\\\)*([A-Za-z][A-Za-z0-9]+(.txt)){1}";
     private static final String NUMBER = "[0-9]+";
     private static final String SPACE = " ";
     private static final String BOOLEAN = "(false)|(true)";

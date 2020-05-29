@@ -82,6 +82,10 @@ public class PCB {
         this.returnRegister = returnRegister;
     }
 
+    public void setExecutionTime(long millis){
+        processTime.setTotalTime(millis);
+    }
+
     @Override
     public String toString(){
         return processID + ", " + priority + ", " + processState + ", " + programCounter + ", " + quantum + ", " + memoryLimits + ", " + getExecutionTime();

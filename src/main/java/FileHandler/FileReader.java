@@ -35,6 +35,7 @@ public class FileReader {
         try{
             return new Scanner(new File(path));
         }catch(Exception e){
+            e.printStackTrace();
             return null;
         }
     }

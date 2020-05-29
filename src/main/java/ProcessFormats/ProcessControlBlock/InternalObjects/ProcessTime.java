@@ -12,6 +12,11 @@ public class ProcessTime {
         this.end = System.currentTimeMillis();
     }
 
+    public void setTotalTime(long millis){
+        start = 0;
+        end = millis;
+    }
+
     public double totalTime(){
         return (end - start) / 1000.0;
     }

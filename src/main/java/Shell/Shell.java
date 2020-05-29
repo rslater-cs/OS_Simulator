@@ -128,7 +128,8 @@ public class Shell {
             }
         }else if(!isSpecialKey(code)){
             if(e.isShiftDown()){
-                letter = e.getText().toUpperCase();
+                if(code == KeyCode.SEMICOLON) letter = ":";
+                else letter = e.getText().toUpperCase();
             }else {
                 letter = e.getText();
             }

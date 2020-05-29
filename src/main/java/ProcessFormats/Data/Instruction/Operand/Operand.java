@@ -46,6 +46,14 @@ public class Operand {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if(obj == null) return false;
+        Operand operand = (Operand)obj;
+
+        return (operand.addressMode == addressMode && operand.intArgument == intArgument);
+    }
+
+    @Override
     public String toString(){
         String result = getValue();
         if(addressMode == AddressMode.DIRECT){

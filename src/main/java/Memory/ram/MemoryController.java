@@ -189,18 +189,23 @@ public class MemoryController extends Thread{
     }
 
     private void printError(String errorMessage){
-        dataFromMemoryToCPU.add(new Instruction(Opcode.ERR, new Operand[]{new Operand(new RuntimeException(errorMessage).toString(), AddressMode.NONE)}));
+        dataFromMemoryToCPU.add(new Instruction(Opcode.ERR, new Operand[]{new Operand(new RuntimeException(errorMessage).toString(), AddressMode.IMMEDIATE)}));
     }
 
     private double getPercentUsage(){
         int openPoints = 0;
         for(PagePointer pointer: openDataPoints){
-            System.out.println(pointer.getStart() + " " + pointer.getBounds() + " " + pointer.getEnd());
             openPoints += pointer.getBounds();
         }
-        System.out.println(openPoints);
-        System.out.println(amountOfPages);
         return (double)openPoints / (double)amountOfPages;
+    }
+
+    public Instruction[][] getMemoryContents(){
+        Instruction[][] memoryContents = new Instruction[pageSize][amountOfPages];
+        for(int x = 0; x < amountOfPages; x++){
+            memoryContents[x] = memoryChip.getData(x);
+        }
+        return memoryContents;
     }
 
     public void endThread(){
