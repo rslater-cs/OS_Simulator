@@ -21,7 +21,7 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 
-public class Executer {
+public class Executor {
     private CPU processor;
     private Compiler compiler = new Compiler();
     private SynchronisedQueue<Address> addressQueue;
@@ -31,7 +31,7 @@ public class Executer {
     private ThreadExecutioner threadExecutioner;
     private SubSystemGraph grpah;
 
-    public Executer(CPU processor,
+    public Executor(CPU processor,
                     SynchronisedQueue<Address> addressQueue,
                     SynchronisedQueue<Instruction> dataQueue,
                     SynchronisedQueue<PCB> jobQueue,

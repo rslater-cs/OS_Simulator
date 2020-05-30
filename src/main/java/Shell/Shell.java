@@ -5,7 +5,7 @@ import ProcessFormats.Data.Instruction.Instruction;
 import ProcessFormats.Data.MemoryAddress.Address;
 import ProcessFormats.ProcessControlBlock.PCB;
 import Processor.CPU;
-import Shell.CommandExecuter.Executer;
+import Shell.CommandExecuter.Executor;
 import Shell.CommandExecuter.ThreadExecutioner;
 import Shell.History.History;
 import Shell.Text.OutputDisplay.MessageBox;
@@ -43,7 +43,7 @@ public class Shell {
 
     private static final Rectangle cursor = new Rectangle(2, 15);
 
-    private Executer executer;
+    private Executor executor;
 
     private Scene scene;
 
@@ -86,7 +86,7 @@ public class Shell {
                                 SubSystemGraph graph){
         textView = new MessageBox(OUTPUT_TEXT_HEIGHT, OUTPUT_TEXT_WIDTH, background, printQueue);
         threadExecutioner.addMessageBox(textView);
-        executer = new Executer(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue, graph, threadExecutioner);
+        executor = new Executor(processor, addressFromCPUToMemory, dataFromCPUToMemory, jobQueue, graph, threadExecutioner);
     }
 
     private void decode(KeyEvent e){
@@ -105,7 +105,7 @@ public class Shell {
         } else if(code.isWhitespaceKey()){
             if(code == KeyCode.ENTER){
                printQueue.add(userRegion.toString());
-               Exception exception = executer.start(userRegion.toString());
+               Exception exception = executor.start(userRegion.toString());
                if(exception != null){
                    printQueue.add(exception.toString());
                }
